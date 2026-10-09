@@ -1,7 +1,7 @@
 # 비동기 브리핑 생성 및 작업 조회 API 명세서 (V0 MOCK_VIRTUAL)
 
 ## 개요
-아!거기 (Ah! There) B2B 영업 미팅 브리핑 서비스 백엔드의 비동기 브리핑 생성 및 작업 상태/결과 조회 API 명세서이다.
+아데어 (Ah! There) B2B 영업 미팅 브리핑 서비스 백엔드의 비동기 브리핑 생성 및 작업 상태/결과 조회 API 명세서이다.
 
 본 V0 오프라인 단계에서는 FastAPI lifespan에 연결된 AnyIO TaskGroup과 프로세스 내 메모리 저장소(`BriefingJobStore`)를 활용하여 HTTP 202 Accepted 조기 응답 및 백그라운드 파이프라인 연동을 제공한다.
 
@@ -54,7 +54,7 @@
 {
   "company_name": "무신사",
   "sales_profile": {
-    "company": "아!거기",
+    "company": "아데어",
     "industry": "IT 솔루션",
     "product_service": "기업용 B2B 세일즈 솔루션",
     "target_customer": "중견패션기업",

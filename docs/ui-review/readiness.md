@@ -1,16 +1,16 @@
-# 아!거기 (Ah! There) UI/UX 검토 준비도 보고서 (Readiness Report)
+# 아데어 (Ah! There) UI/UX 검토 준비도 보고서 (Readiness Report)
 
 - **작성일**: 2026-09-26 (2026-09-27 갱신)
 - **문서 목적**: UI/UX 설계 및 검토 직전 백엔드 파이프라인 구현 상태, 도메인 계약 검증 현황, 샘플 JSON 매핑 및 미구현 항목 정리
 - **기준 PRD**: Master PRD Draft v1 (2026-09-22, `Master_PRD_Drive_v1.md`)
-- **원문 출처**: [아!거기(Ah! There) — Hermes 개발용 Master PRD v1](https://drive.google.com/file/d/1ZdYDvKa3yuyq2dJaZwjNSkqJcOOrIdeV/view). Drive 수정 시각은 `2026-09-22T09:11:53.592Z`; 2026-09-26에 전체 19절을 읽었다. 기존 Hermes 캐시는 없어 링크의 원문을 확보했으며, 다른 최신 문서가 존재하지 않는다고 단정하지 않는다. 원문 SHA-256은 `manifest.json`에 기록했다. (새 기획 원문 최신성은 아직 확인되지 않음)
+- **원문 출처**: [아데어(Ah! There) — Hermes 개발용 Master PRD v1](https://drive.google.com/file/d/1ZdYDvKa3yuyq2dJaZwjNSkqJcOOrIdeV/view). Drive 수정 시각은 `2026-09-22T09:11:53.592Z`; 2026-09-26에 전체 19절을 읽었다. 기존 Hermes 캐시는 없어 링크의 원문을 확보했으며, 다른 최신 문서가 존재하지 않는다고 단정하지 않는다. 원문 SHA-256은 `manifest.json`에 기록했다. (새 기획 원문 최신성은 아직 확인되지 않음)
 - **원칙**: 코드 존재가 PRD 변경 승인을 의미하지 않으며, 실제 구현 상태와 PRD 간 차이점 및 미구현 항목을 명확히 기록한다.
 
 ---
 
 ## 1. 개요
 
-본 보고서는 아!거기 B2B 영업 미팅 브리핑 서비스의 오프라인 파이프라인 및 도메인 계약 구현 상태를 기술한다.
+본 보고서는 아데어 B2B 영업 미팅 브리핑 서비스의 오프라인 파이프라인 및 도메인 계약 구현 상태를 기술한다.
 현재 단계는 **비동기 백엔드 로컬 Mock API 및 UI 연동 완료(`/ui-review`), 실공급자/웹호출/DB/Auth 구현 전 오프라인 Mock 기반 파이프라인 검증** 상태이다.
 인위적인 숫자 진행률(%) 대신, Master PRD v1의 주요 기능 요구사항별 구현/부분구현/미구현 단계와 검증 결과를 명확히 기술한다.
 

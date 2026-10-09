@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "ah-there-backend"
 version = "0.1.0"
-description = "Ah! There (아!거기) B2B Sales Briefing Service Backend V0"
+description = "Ah! There (아데어) B2B Sales Briefing Service Backend V0"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [

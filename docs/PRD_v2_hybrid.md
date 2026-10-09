@@ -19,7 +19,7 @@
 
 ## 1. 서비스 정의
 
-- 서비스명: Ah!There (한글 표기는 확인 필요 — 기존 문서는 "아!거기", v2 초안은 "아데어")
+- 서비스명: Ah!There (아데어) — 2026-10-09 확정. 이전 문서의 "아!거기"와 같은 서비스다.
 - 타깃: 외근·미팅이 잦은 B2B 필드 영업사원 (초기 검증 업종: 법인 장기렌터카/플릿)
 - 한 줄 정의: 메신저로 기업명만 보내면 미팅 직전에 읽을 현장 브리핑과 **전략 질문 3선**을 받고, 상세 근거는 웹 리포트에서 본다.
 - North Star: AI가 만든 질문이 실제 고객 미팅에 도움이 되었는가?
@@ -28,9 +28,9 @@
 
 - 메신저(텔레그램 우선): 트리거와 즉시 실행. 현황 요약 최대 3줄 + 질문 3선 + 리포트 링크. 30초 안에 읽는 분량.
 - 웹 대시보드(Next.js): 리포트 상세(기업/산업 출처 분리, 원문 링크), 미팅 메모, 과거 리포트 아카이브.
-- 메신저 확장 시 확인 필요:
-  - 카카오톡: 개인 계정 봇은 불가. 카카오톡 채널 + 카카오 i 오픈빌더 스킬 서버 연동이 필요하다.
-  - iMessage: 공식 봇 API가 없다. 후순위.
+- 메신저 범위 (2026-10-09 결정): **텔레그램만** 먼저 한다.
+  - 카카오톡: 보류. 나중에 카카오톡 채널 + 카카오 i 오픈빌더 스킬 서버로 붙인다(개인 계정 봇은 불가). DB의 `messenger_type`에는 'kakao' 값을 미리 허용해 두어 그때 스키마 변경이 없다.
+  - iMessage: 공식 봇 API가 없어 계획에서 제외.
 
 ## 3. 핵심 로직
 
@@ -84,27 +84,54 @@
 - 초안의 "MCP Server 1 = Perplexity, MCP Server 2 = Supabase" 구조 대신 **도메인 MCP 서버 1개**로 묶었다. 이유: Hermes LLM이 검색·저장을 직접 조합하면 FACT 검증, 인용 무결성, 개인정보 필터를 우회할 수 있다. 검증 로직은 서버 코드 안에 있어야 한다.
 - Hermes는 결과의 `messenger_text`를 수정 없이 그대로 답장하도록 MCP 서버 instructions에 명시했다.
 
-### 4.1 Hermes Agent 연동 예시 (확인 필요)
+### 4.1 Hermes Agent 연동 설정 (공식 문서 확인 완료)
 
-Hermes Agent의 MCP 설정 키 이름과 형식은 설치 버전의 공식 문서로 확인한 뒤 적용한다. 아래는 형태 예시다.
+Hermes Agent 공식 문서(hermes-agent.nousresearch.com, MCP·Telegram 페이지) 기준으로 확인한 사항:
+
+- MCP 설정 위치는 `~/.hermes/config.yaml`의 `mcp_servers` 키. 로컬 서버는 `command`, `args`, `env`로 지정한다.
+- Hermes는 MCP 서버에 내 셸 환경변수를 넘기지 않는다. `env`에 적은 값과 기본 안전 변수만 전달되므로, 필요한 값은 전부 `env`에 적어야 한다.
+- `tools.include`로 노출할 도구를 제한할 수 있다.
+- 실행 중인 게이트웨이(`hermes gateway`)는 `config.yaml` 변경을 감지해 MCP 연결을 다시 맺는다. 대화 중에는 `/reload-mcp`로 다시 읽는다.
+- 텔레그램은 `~/.hermes/.env`에 봇 토큰과 `TELEGRAM_ALLOWED_USERS`(숫자 ID, 쉼표 구분)를 넣는다. 숫자 ID는 @userinfobot에서 확인한다. 이 값이 없으면 게이트웨이가 모든 사용자를 거부한다.
+- 아직 실측 필요: 텔레그램 대화에서 MCP 도구가 실제로 호출되는지 (공식 문서에 명시 없음 → Step 3에서 직접 확인).
 
 ```yaml
-# ~/.hermes/config.yaml (예시 — 키 이름은 Hermes 공식 문서로 확인 필요)
+# ~/.hermes/config.yaml
 mcp_servers:
   ah-there:
-    command: "/path/to/Agentai/.venv/bin/python"
+    command: "/절대경로/Agentai/.venv/bin/python"   # Windows: C:/.../Agentai/.venv/Scripts/python.exe
     args: ["-m", "app.mcp_server"]
     env:
+      PYTHONPATH: "/절대경로/Agentai"
+      AH_THERE_MESSENGER_TYPE: "telegram"
+      AH_THERE_OWNER_USER_ID: "123456789"        # 내 텔레그램 숫자 ID (TELEGRAM_ALLOWED_USERS와 동일)
       REPORT_STORE: "supabase"
       SUPABASE_URL: "https://<project-ref>.supabase.co"
       SUPABASE_SERVICE_ROLE_KEY: "<서버 전용 키>"
-      REPORT_BASE_URL: "https://ahthere.com/report"
+      REPORT_BASE_URL: "https://<project>.vercel.app/report"
+    tools:
+      include: [list_sales_templates, save_sales_profile, create_meeting_briefing]
 ```
 
-### 4.2 보안 주의 (다중 사용자 전환 전 필수)
+```bash
+# ~/.hermes/.env
+TELEGRAM_BOT_TOKEN=<BotFather에서 받은 토큰>   # 변수명은 `hermes gateway setup` 마법사 결과를 따른다
+TELEGRAM_ALLOWED_USERS=123456789
+```
 
-- 현재 `messenger_user_id`는 Hermes LLM이 도구 인자로 넘긴다. 프롬프트 인젝션으로 다른 사람 ID를 넣을 수 있다. 1인 MVP에서는 허용하되, 다중 사용자 전에는 게이트웨이가 발신자 ID를 서버에 직접 주입하도록 바꿔야 한다. (Hermes가 발신자 정보를 도구 컨텍스트로 넘겨주는지 확인 필요)
-- 리포트 링크는 UUID v4(추측 불가)지만 링크를 받은 누구나 열람할 수 있다. 질문·소구점은 영업 전략 정보이므로 웹 공개 전 매직링크 만료 또는 로그인을 붙인다.
+### 4.2 사용자 식별 보안 (2026-10-09 수정 완료)
+
+- 문제: 이전 버전은 Hermes의 LLM이 `messenger_user_id`를 도구 인자로 넘겼다. 메시지에 "다른 사람 ID로 조회해"라는 식의 프롬프트 인젝션이 섞이면 남의 프로필·리포트에 접근할 수 있었다.
+- 수정: MCP 도구에서 사용자 ID 인자를 없앴다. 서버는 `AH_THERE_OWNER_USER_ID` 환경변수에 고정된 ID만 쓴다. 값이 비어 있으면 모든 요청을 `OWNER_NOT_CONFIGURED`로 거부한다.
+- 이중 잠금: Hermes의 `TELEGRAM_ALLOWED_USERS`를 같은 ID로 설정하면, 봇에 말을 걸 수 있는 사람과 데이터 주인이 항상 같다.
+- 다중 사용자로 넓힐 때: 사용자마다 Hermes 게이트웨이 + MCP 서버를 따로 띄우거나, 발신자 ID를 서버가 직접 받는 자체 텔레그램 웹훅으로 바꾼다. (그때 다시 설계)
+- 리포트 링크: UUID v4라 추측은 불가능하지만 링크를 받은 사람은 열람할 수 있다. 웹 공개 전 매직링크 만료 또는 로그인을 붙인다.
+
+### 4.3 도메인 (미보유)
+
+- 현재 도메인이 없으므로 기본 리포트 주소는 `http://localhost:3000/report`(로컬 Next.js)다.
+- Step 4에서 Vercel에 배포하면 무료 주소 `https://<project>.vercel.app/report`를 `REPORT_BASE_URL`로 쓴다.
+- 도메인을 사면 `REPORT_BASE_URL`만 바꾸면 된다. 코드 수정은 필요 없다. (이미 보낸 메신저 링크는 옛 주소로 남는다.)
 
 ## 5. 데이터베이스 (Supabase) — `db/supabase/migrations/001_init.sql`
 
@@ -121,14 +148,15 @@ mcp_servers:
 - Hermes Agent: 텔레그램 입출력, 대화 흐름, MCP 도구 호출
 - ah-there 파이프라인(Python): 검색 계획, 근거 검증, 가설/질문 생성, 인용 무결성 검사
 - Perplexity API (sonar): 기업·산업 공개 웹 검색 (인용 URL만 근거 후보로 사용)
-- 추론 LLM: 기존 `ReasoningProvider` 추상화 유지 (OmniRoute/OpenAI 호환). 초안의 "GPT (Luna 계열)"은 정확한 모델명 확인 필요.
+- GPT-6 Luna (OpenAI, 2026-09 출시 저가·고속 모델): 세일즈 템플릿 분류 체계 설계와 질문 프롬프트 엔지니어링(사람이 쓰는 작업 도구). 파이프라인 추론 모델 후보로도 쓸 수 있다. 기존 `ReasoningProvider`가 OpenAI 호환이라 `REASONING_MODEL` 값만 바꾸면 된다(OpenRouter 기준 모델 ID `openai/gpt-6-luna`, OpenAI 직접 호출 시 ID는 OpenAI 콘솔에서 확인).
+- 추론 LLM: 기존 `ReasoningProvider` 추상화 유지 (OmniRoute/OpenAI 호환). 특정 모델을 코드에 고정하지 않는다.
 - Supabase: 유저 템플릿, 리포트 저장
 - Next.js + Vercel: 리포트 뷰어
 
 ## 7. 로드맵 (현재 상태)
 
 - Step 1 프롬프트 검증: **부분 완료.** P5 계약·서버 검증·Mock 흐름 완료. 실제 LLM으로 20~30개 기업 품질 평가는 미실행.
-- Step 2 Hermes 도구 연동: **코드 완료.** MCP 서버 3개 도구 + Supabase 저장소 구현. Hermes 실제 연결은 미실행(설정 형식 확인 필요).
+- Step 2 Hermes 도구 연동: **코드 완료.** MCP 서버 3개 도구 + Supabase 저장소 구현, 사용자 ID 서버 고정. Hermes 설정 형식은 공식 문서로 확인(4.1). 실제 연결은 미실행.
 - Step 3 텔레그램 봇 개방: 미착수. Hermes 게이트웨이로 텔레그램 연결 후 E2E 확인.
 - Step 4 Next.js 웹 뷰어: 미착수. `reports` 행(`briefing` JSON)을 렌더링하는 `/report/[id]` 페이지.
 - 선행 과제: 오케스트레이터에 실제 Perplexity/LLM 공급자 주입 (현재 기본값은 Mock). `HANDOFF.md`의 "실공급자 1개 회사 검증"과 같은 작업이다.

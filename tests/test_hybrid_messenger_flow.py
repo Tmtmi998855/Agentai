@@ -183,10 +183,10 @@ async def test_orchestrator_legacy_request_has_no_strategic_questions():
 async def test_messenger_text_has_three_questions_and_link():
     req = BriefingCreateRequest.from_template("삼양패키징", MOBILITY, target_industry="포장재")
     briefing = await BriefingOrchestrator().execute_pipeline(req)
-    text = format_messenger_briefing(briefing, "https://ahthere.com/report/abc")
+    text = format_messenger_briefing(briefing, "http://localhost:3000/report/abc")
     for label in ("Q1. [기업 이슈 인지]", "Q2. [산업 트렌드 공감]", "Q3. [솔루션 브리지]"):
         assert label in text
-    assert text.endswith("https://ahthere.com/report/abc")
+    assert text.endswith("http://localhost:3000/report/abc")
     assert "MOCK_VIRTUAL" in text
 
 
@@ -196,9 +196,9 @@ def test_messenger_text_truncation_keeps_link():
         company_snapshot=CompanySnapshot(summary="\n".join(["가" * 3000] * 3)),
         meeting_questions=["q1", "q2", "q3"],
     )
-    text = format_messenger_briefing(briefing, "https://ahthere.com/report/x")
+    text = format_messenger_briefing(briefing, "http://localhost:3000/report/x")
     assert len(text) <= TELEGRAM_MAX_CHARS
-    assert text.endswith("https://ahthere.com/report/x")
+    assert text.endswith("http://localhost:3000/report/x")
 
 
 # ---------- 에이전트 도구 + 저장소 ----------
@@ -214,9 +214,9 @@ async def test_agent_tools_require_profile_then_save_report():
 
     result = await agent_tools.create_meeting_briefing(
         store, "telegram", "1001", "삼양패키징", target_industry="포장재",
-        report_base_url="https://ahthere.com/report/",
+        report_base_url="http://localhost:3000/report/",
     )
-    assert result["report_url"] == f"https://ahthere.com/report/{result['report_id']}"
+    assert result["report_url"] == f"http://localhost:3000/report/{result['report_id']}"
     report = await store.get_report(result["report_id"])
     assert len(report.questions) == 3
     assert "포장재" in report.industry_summary

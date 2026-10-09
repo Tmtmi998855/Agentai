@@ -1,4 +1,14 @@
-# HANDOFF.md — 아!거기 (Ah! There)
+# HANDOFF.md — 아데어 (Ah! There)
+
+## 2026-10-09 추가 결정 반영
+
+- 서비스 한글명 **아데어** 확정 → 코드·문서·UI 시안 표기 변경.
+- **사용자 ID 서버 고정**: MCP 도구에서 `messenger_user_id` 인자 제거. `AH_THERE_OWNER_USER_ID` 환경변수로만 지정, 미설정 시 `OWNER_NOT_CONFIGURED`로 거부. Hermes `TELEGRAM_ALLOWED_USERS`와 같은 ID로 묶는다.
+- Hermes 설정 형식은 공식 문서로 확인해 `docs/PRD_v2_hybrid.md` 4.1에 반영 (`mcp_servers`, `env` 명시 전달, `tools.include`).
+- 도메인 미보유 → `REPORT_BASE_URL` 기본값 `http://localhost:3000/report`, 배포 후 Vercel 무료 주소 사용.
+- 모델: GPT-6 Luna를 프롬프트 설계 도구/추론 후보로 기재 (코드 고정 없음, `REASONING_MODEL` 설정값).
+- 카카오톡 채널 연동은 보류 (텔레그램만 진행).
+- 검증: `pytest -q -m "not integration"` → 203 passed (`tests/test_mcp_server.py` 3건 추가).
 
 ## 2026-10-09 업데이트 — v2 하이브리드(메신저 + 웹) 반영
 

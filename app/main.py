@@ -79,7 +79,7 @@ def create_app() -> FastAPI:
     """App factory function enabling application instance isolation testing."""
     app_instance = FastAPI(
         title=settings.APP_NAME,
-        description="Ah! There (아!거기) B2B Sales Briefing Service V0 Backend",
+        description="Ah! There (아데어) B2B Sales Briefing Service V0 Backend",
         version="0.1.0",
         debug=False,
         lifespan=lifespan,

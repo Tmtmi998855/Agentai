@@ -1,16 +1,21 @@
-"""Ah!There MCP 서버 — Hermes Agent가 stdio로 붙어서 쓰는 도구 모음.
+"""Ah!There(아데어) MCP 서버 — Hermes Agent가 stdio로 붙어서 쓰는 도구 모음.
 
 실행:  python -m app.mcp_server
 필요 패키지:  pip install -e ".[agent]"   (MCP Python SDK 2.x)
+
+보안: 도구는 사용자 ID를 인자로 받지 않는다. Hermes의 LLM이 프롬프트 인젝션으로
+다른 사람의 ID를 넣는 것을 막기 위해, 이 서버 프로세스의 소유자 ID를 환경변수
+AH_THERE_OWNER_USER_ID로만 고정한다. Hermes 쪽 TELEGRAM_ALLOWED_USERS도 같은 ID로 묶는다.
 """
 
 from typing import Any
 
 from mcp.server.mcpserver import MCPServer
 
+from app.core.config import settings
 from app.core.exceptions import AhThereException
 from app.services import agent_tools
-from app.services.report_store import get_report_store
+from app.services.report_store import MessengerType, get_report_store
 
 server = MCPServer(
     name="ah-there",
@@ -21,6 +26,16 @@ server = MCPServer(
     ),
 )
 _store = get_report_store()
+
+
+def owner_identity() -> tuple[MessengerType, str]:
+    """서버 설정에 고정된 소유자 ID. 비어 있으면 어떤 요청도 처리하지 않는다(fail-closed)."""
+    user_id = settings.AH_THERE_OWNER_USER_ID.strip()
+    if not user_id:
+        raise agent_tools.AgentToolError(
+            "MCP 서버에 AH_THERE_OWNER_USER_ID가 설정되지 않았습니다.", "OWNER_NOT_CONFIGURED"
+        )
+    return settings.AH_THERE_MESSENGER_TYPE, user_id
 
 
 def _error(exc: AhThereException) -> dict[str, Any]:
@@ -34,33 +49,24 @@ def list_sales_templates() -> dict[str, Any]:
 
 
 @server.tool()
-async def save_sales_profile(
-    messenger_type: str,
-    messenger_user_id: str,
-    category_id: str,
-    product_id: str,
-    value_prop_ids: list[str],
-) -> dict[str, Any]:
+async def save_sales_profile(category_id: str, product_id: str, value_prop_ids: list[str]) -> dict[str, Any]:
     """영업사원의 템플릿 선택(카테고리 1개, 품목 1개, 소구점 1~3개)을 저장한다."""
     try:
+        messenger_type, user_id = owner_identity()
         return await agent_tools.save_sales_profile(
-            _store, messenger_type, messenger_user_id, category_id, product_id, value_prop_ids
+            _store, messenger_type, user_id, category_id, product_id, value_prop_ids
         )
     except AhThereException as exc:
         return _error(exc)
 
 
 @server.tool()
-async def create_meeting_briefing(
-    messenger_type: str,
-    messenger_user_id: str,
-    company_name: str,
-    target_industry: str | None = None,
-) -> dict[str, Any]:
+async def create_meeting_briefing(company_name: str, target_industry: str | None = None) -> dict[str, Any]:
     """기업명으로 현장 브리핑과 미팅 질문 3선을 만들고 웹 리포트 링크를 반환한다."""
     try:
+        messenger_type, user_id = owner_identity()
         return await agent_tools.create_meeting_briefing(
-            _store, messenger_type, messenger_user_id, company_name, target_industry
+            _store, messenger_type, user_id, company_name, target_industry
         )
     except AhThereException as exc:
         return _error(exc)

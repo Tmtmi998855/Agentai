@@ -39,7 +39,12 @@ class Settings(BaseSettings):
     REPORT_STORE: Literal["memory", "supabase"] = Field(default="memory", description="리포트 저장소 선택")
     SUPABASE_URL: str = Field(default="", description="Supabase 프로젝트 URL (https://<ref>.supabase.co)")
     SUPABASE_SERVICE_ROLE_KEY: SecretStr = Field(default=SecretStr(""), description="서버 전용 service_role 키")
-    REPORT_BASE_URL: str = Field(default="https://ahthere.com/report", description="웹 리포트 뷰어 기본 URL")
+    # 도메인 미보유: 로컬 Next.js 기본값. 배포 후 https://<project>.vercel.app/report 로 교체
+    REPORT_BASE_URL: str = Field(default="http://localhost:3000/report", description="웹 리포트 뷰어 기본 URL")
+
+    # MCP 서버 사용자 고정 (LLM이 사용자 ID를 넘기지 못하게 서버 설정으로만 지정)
+    AH_THERE_MESSENGER_TYPE: Literal["telegram", "web"] = Field(default="telegram", description="MCP 서버 소유자 메신저")
+    AH_THERE_OWNER_USER_ID: str = Field(default="", description="MCP 서버 소유자의 메신저 숫자 ID (예: 텔레그램 user id)")
 
     def get_public_provider_config(self) -> dict:
         """Returns safe provider config WITHOUT API keys or sensitive secrets."""

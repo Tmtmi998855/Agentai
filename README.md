@@ -1,4 +1,4 @@
-# Ah! There (아!거기) — B2B Sales Briefing Service Backend V0
+# Ah! There (아데어) — B2B Sales Briefing Service Backend V0
 
 B2B 영업사원의 영업 맥락과 고객사의 최신 공개정보를 결합해 잠재 수요 가설과 미팅 확인 질문을 생성하는 백엔드 서비스입니다.
 
@@ -25,8 +25,11 @@ B2B 영업사원의 영업 맥락과 고객사의 최신 공개정보를 결합�
 
 ```bash
 uv pip install -e ".[agent]"
-python -m app.mcp_server   # stdio 전송
+# 소유자 텔레그램 숫자 ID를 반드시 지정 (미지정 시 모든 도구 호출 거부)
+AH_THERE_OWNER_USER_ID=123456789 python -m app.mcp_server   # stdio 전송
 ```
+
+Hermes 설정 예시(`~/.hermes/config.yaml`)는 `docs/PRD_v2_hybrid.md` 4.1 참고.
 
 ## 테스트 실행
 
