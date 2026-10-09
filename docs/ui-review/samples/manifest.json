@@ -1,0 +1,47 @@
+{
+  "prd_provenance": {
+    "source": "Master PRD Drive v1",
+    "version": "Draft v1",
+    "date": "2026-09-22",
+    "hash": "A9B9EF2A86120C8710ACEF9A435AAB57CB532FFCE3B3D503BE7764BD3D2D1E9F"
+  },
+  "samples_provenance": "MOCK_VIRTUAL",
+  "samples": {
+    "success.json": {
+      "status_code": 200,
+      "contract_model": "BriefingObject",
+      "briefing_status": "SUCCESS",
+      "description": "정상 브리핑 생성 성공 샘플"
+    },
+    "insufficient_evidence.json": {
+      "status_code": 200,
+      "contract_model": "BriefingObject",
+      "briefing_status": "INSUFFICIENT_EVIDENCE",
+      "description": "확정 근거 부족 응답 샘플"
+    },
+    "entity_ambiguous.json": {
+      "status_code": 200,
+      "contract_model": "BriefingObject",
+      "briefing_status": "ENTITY_AMBIGUOUS",
+      "description": "기업 식별 신뢰도 LOW 응답 샘플"
+    },
+    "provider_auth_error.json": {
+      "status_code": 502,
+      "contract_model": "ErrorResponse",
+      "error_code": "PROVIDER_AUTH_ERROR",
+      "description": "공급자 인증 실패 응답 샘플"
+    },
+    "provider_timeout.json": {
+      "status_code": 504,
+      "contract_model": "ErrorResponse",
+      "error_code": "PROVIDER_TIMEOUT",
+      "description": "공급자 응답 시간 초과 응답 샘플"
+    },
+    "invalid_citation.json": {
+      "status_code": 422,
+      "contract_model": "ErrorResponse",
+      "error_code": "INVALID_CITATION",
+      "description": "잘못된 인용 검증 실패 응답 샘플"
+    }
+  }
+}

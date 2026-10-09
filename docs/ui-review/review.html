@@ -1,0 +1,1022 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; connect-src 'self'; img-src 'none'; object-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'">
+  <title>아!거기 · 브리핑 검토</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #eef2f4;
+      --surface: #ffffff;
+      --panel: #f6f8fa;
+      --text: #162b35;
+      --muted: #58707a;
+      --line: #dbe5e8;
+      --line-strong: #b7c9ce;
+      --line-soft: #c7e7e9;
+      --accent: #087f83;
+      --accent-soft: #dff5f7;
+      --accent-strong: #24b6c2;
+      --lilac: #f0eafd;
+      --lilac-line: #aa98e6;
+      --lilac-border: #ded5f8;
+      --lilac-text: #66549a;
+      --notice: #f6f8fa;
+      --warn: #a94450;
+      --warn-bg: #fff1f3;
+      --focus: #087f83;
+      --inverse-text: #ffffff;
+      --card-radius: 22px;
+      --small-radius: 14px;
+      --card-shadow: 0 12px 28px rgba(30, 66, 78, .08);
+      --preview-shadow: 0 18px 44px rgba(30, 66, 78, .1);
+    }
+    * { box-sizing: border-box; }
+    html { background: var(--bg); }
+    body {
+      margin: 0;
+      color: var(--text);
+      background: var(--bg);
+      font-family: "맑은 고딕", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+      font-size: 15px;
+      line-height: 1.6;
+      word-break: keep-all;
+      overflow-wrap: break-word;
+    }
+    button { font: inherit; }
+    button:focus-visible, summary:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+    .page { width: min(100% - 32px, 1080px); margin: 0 auto; padding: 24px 0 48px; }
+    .eyebrow, .label { color: var(--muted); font-size: 12px; font-weight: 700; letter-spacing: .04em; }
+    h1, h2, h3, h4, p { margin: 0; }
+    h1 { font-size: clamp(27px, 4vw, 38px); line-height: 1.15; letter-spacing: -.05em; }
+    h2 { font-size: 21px; line-height: 1.3; letter-spacing: -.025em; }
+    h3 { font-size: 18px; line-height: 1.4; letter-spacing: -.02em; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 20px 24px; border: 1px solid rgba(183, 201, 206, .8); border-radius: var(--card-radius); background: var(--surface); box-shadow: var(--card-shadow); }
+    .title-block { display: grid; gap: 7px; }
+    .brand-line { display: flex; align-items: center; gap: 10px; }
+    .brand-mark { display: grid; width: 34px; height: 34px; place-items: center; border-radius: 12px; background: var(--accent-soft); color: var(--accent); }
+    .brand-mark svg { width: 20px; height: 20px; }
+    .scope-line { color: var(--muted); font-size: 14px; }
+    .scope-line strong { color: var(--text); }
+    .notice { margin-top: 16px; padding: 12px 16px; border: 1px solid var(--line-soft); border-radius: var(--small-radius); background: var(--accent-soft); color: var(--muted); font-size: 13px; }
+    .notice strong { display: block; margin-bottom: 2px; color: var(--text); }
+
+    .user-context-card {
+      margin-top: 16px;
+      padding: 16px 20px;
+      border: 1px solid var(--line-soft);
+      border-radius: var(--card-radius);
+      background: var(--surface);
+      box-shadow: var(--card-shadow);
+      display: grid;
+      gap: 10px;
+    }
+    .user-context-header {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 8px;
+    }
+    .user-context-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 8px;
+      margin: 0;
+    }
+    .user-context-item {
+      padding: 10px 12px;
+      border-radius: var(--small-radius);
+      background: var(--panel);
+      border: 1px solid var(--line);
+    }
+    .user-context-item dt {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .user-context-item dd {
+      margin: 2px 0 0;
+      font-weight: 700;
+      color: var(--text);
+      font-size: 13px;
+    }
+
+    .review-tools { margin-top: 16px; border: 1px solid var(--line); border-radius: var(--small-radius); background: rgba(255, 255, 255, .68); }
+    .review-tools summary { padding: 13px 16px; color: var(--accent); }
+    .form-section { margin-top: 16px; border: 1px solid var(--line); border-radius: var(--small-radius); background: rgba(255, 255, 255, .68); }
+    .form-section summary { padding: 13px 16px; color: var(--accent); font-weight: 700; cursor: pointer; }
+    .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; padding: 0 16px 16px; }
+    .form-group { display: grid; gap: 4px; }
+    .form-group.full-width { grid-column: 1 / -1; }
+    .form-group label { color: var(--text); font-size: 13px; font-weight: 700; }
+    .form-input, .form-textarea { width: 100%; padding: 8px 12px; border: 1px solid var(--line); border-radius: var(--small-radius); background: var(--surface); color: var(--text); font: inherit; font-size: 14px; box-sizing: border-box; }
+    .form-input:focus, .form-textarea:focus { outline: 2px solid var(--focus); outline-offset: 1px; background: var(--surface); }
+    .form-textarea { min-height: 56px; resize: vertical; }
+    .form-actions { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding: 0 16px 16px; }
+    .submit-button { border: 1px solid var(--accent); border-radius: 999px; background: var(--accent); color: var(--inverse-text); padding: 8px 18px; font-weight: 700; cursor: pointer; transition: opacity .15s ease, background-color .15s ease; }
+    .submit-button:hover:not(:disabled) { background: var(--accent-strong); border-color: var(--accent-strong); }
+    .submit-button:disabled { opacity: .6; cursor: not-allowed; }
+    .api-notice { color: var(--muted); font-size: 13px; }
+    .controls { display: grid; gap: 18px; padding: 0 16px 16px; }
+    .control-group { display: grid; gap: 8px; }
+    .button-row { display: flex; flex-wrap: wrap; gap: 8px; }
+    .sample-button, .width-button {
+      border: 1px solid var(--line); border-radius: 999px; background: var(--surface); color: var(--text);
+      padding: 8px 12px; cursor: pointer; text-align: left;
+    }
+    .sample-button:hover, .width-button:hover { border-color: var(--accent-strong); background: var(--accent-soft); }
+    .sample-button[aria-pressed="true"], .width-button[aria-pressed="true"] { background: var(--accent); color: var(--inverse-text); border-color: var(--accent); }
+    .width-note { color: var(--muted); font-size: 13px; }
+    .preview-area { margin-top: 28px; }
+    .preview-heading { display: flex; justify-content: space-between; gap: 16px; align-items: baseline; margin: 0 4px 12px; }
+    .preview-heading p { color: var(--muted); font-size: 13px; }
+    .preview-frame { width: 100%; overflow-x: auto; padding: 0 4px 16px; }
+    .preview { width: min(100%, 1280px); margin: 0 auto; border: 1px solid var(--line); border-radius: var(--card-radius); background: var(--surface); box-shadow: var(--preview-shadow); }
+    .preview[data-width="phone"] { width: min(100%, 375px); }
+    .preview[data-width="tablet"] { width: min(100%, 768px); }
+    .preview[data-width="wide"] { width: min(100%, 960px); }
+    .preview-inner { padding: clamp(20px, 3vw, 32px); container-type: inline-size; }
+    .preview-status { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; padding: 0 0 16px; border-bottom: 1px solid var(--line); }
+    .status-tag { display: inline-flex; align-items: center; border: 1px solid var(--line-soft); border-radius: 999px; padding: 3px 10px; color: var(--accent); background: var(--accent-soft); font-size: 12px; font-weight: 700; }
+    .status-tag.warn { color: var(--warn); border-color: var(--warn); background: var(--warn-bg); }
+    .preview-meta { margin-left: auto; color: var(--muted); font-size: 12px; }
+    .briefing { display: grid; gap: 16px; padding-top: 20px; }
+    .section { display: grid; gap: 12px; padding: 20px; border: 1px solid var(--line); border-radius: var(--card-radius); background: var(--surface); box-shadow: var(--card-shadow); }
+    .section + .section { padding-top: 20px; border-top: 1px solid var(--line); }
+    .section-title { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: baseline; }
+    .section-title .label { min-width: 24px; color: var(--accent); }
+    .company-meta { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+    .meta-item { padding: 10px 12px; border-radius: var(--small-radius); background: var(--panel); border: 1px solid var(--line); min-width: 0; }
+    .meta-item dt { color: var(--muted); font-size: 12px; }
+    .meta-item dd { margin: 2px 0 0; overflow-wrap: anywhere; font-weight: 600; }
+
+    .overview-grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
+    @media (min-width: 768px) { .overview-grid { grid-template-columns: 1fr 1fr; } }
+    @container (min-width: 680px) { .overview-grid { grid-template-columns: 1fr 1fr; } }
+
+    .chart-frame {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      min-height: 140px;
+      padding: 18px 14px;
+      border: 1px dashed var(--line);
+      border-radius: var(--small-radius);
+      background:
+        linear-gradient(to right, rgba(219, 229, 232, 0.4) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(219, 229, 232, 0.4) 1px, transparent 1px),
+        var(--panel);
+      background-size: 20px 20px;
+      text-align: center;
+      gap: 8px;
+    }
+    .chart-legends {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      font-size: 11px;
+      color: var(--muted);
+    }
+    .chart-legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .chart-legend-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--line-strong);
+    }
+    .chart-empty-msg {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 500;
+      line-height: 1.4;
+      margin: 0;
+    }
+
+    .empty-card {
+      display: grid;
+      gap: 6px;
+      padding: 16px;
+      border: 1px dashed var(--line);
+      border-radius: var(--small-radius);
+      background: var(--panel);
+      text-align: center;
+    }
+    .empty-card strong {
+      color: var(--text);
+      font-size: 14px;
+    }
+    .empty-card p {
+      color: var(--muted);
+      font-size: 13px;
+      margin: 0;
+    }
+
+    .strategy-group {
+      display: grid;
+      gap: 10px;
+    }
+    .strategy-group + .strategy-group {
+      margin-top: 10px;
+      padding-top: 14px;
+      border-top: 1px solid var(--line);
+    }
+    .strategy-group-title {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--accent);
+      margin: 0;
+    }
+
+    .summary { display: grid; gap: 7px; }
+    .summary p { max-width: 72ch; }
+    .small-talk, .hypothesis, .question-list, .source-list, .candidate-list, .warning-list { display: grid; gap: 8px; }
+    .small-talk-item, .hypothesis, .question, .source, .warning, .error-box { padding: 14px; border: 1px solid var(--line); border-radius: var(--small-radius); background: var(--notice); }
+    .small-talk-item p + p, .hypothesis p + p, .source p + p { margin-top: 5px; }
+    .small-talk-item strong, .hypothesis strong { display: block; }
+    .hypothesis { background: var(--lilac); border-color: var(--lilac-border); border-left: 4px solid var(--lilac-line); }
+    .hypothesis-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+    .signal { flex: 0 0 auto; border: 1px solid var(--lilac-line); border-radius: 999px; padding: 2px 8px; color: var(--lilac-text); background: rgba(255,255,255,.55); font-size: 12px; font-weight: 700; white-space: nowrap; }
+    .signal em { font-style: normal; color: var(--muted); }
+    .hypothesis-note { color: var(--muted); font-size: 13px; }
+    .hypothesis-details { display: grid; gap: 8px; margin-top: 4px; }
+    details { border-top: 1px solid var(--line); padding-top: 8px; }
+    summary { cursor: pointer; font-weight: 700; }
+    .detail-list { margin: 8px 0 0; padding-left: 20px; }
+    .question { background: var(--surface); }
+    .small-talk-item { border-left: 4px solid var(--accent-strong); background: var(--surface); }
+    .evidence-banner { padding: 14px; border: 1px solid var(--line-soft); border-radius: var(--small-radius); background: var(--accent-soft); }
+    .evidence-banner strong { display: block; }
+    .evidence-banner p { color: var(--muted); font-size: 13px; }
+    .source { background: var(--surface); }
+    .source-head { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: baseline; }
+    .source-tier { font-size: 12px; font-weight: 700; }
+    .virtual-source { color: var(--muted); font-size: 12px; }
+    .source-url { display: block; color: var(--muted); overflow-wrap: anywhere; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 12px; }
+    .warning, .error-box { border-color: var(--warn); background: var(--warn-bg); }
+    .warning strong, .error-box strong { color: var(--warn); }
+    .error-box { display: grid; gap: 10px; }
+    .error-proposal { padding: 10px; border: 1px dashed var(--warn); background: var(--surface); }
+    .technical { color: var(--muted); font-size: 13px; }
+    .technical code { overflow-wrap: anywhere; }
+    .candidate { width: 100%; border: 1px solid var(--line); border-radius: var(--small-radius); background: var(--panel); color: var(--text); padding: 10px; text-align: left; cursor: not-allowed; }
+    .candidate:disabled { opacity: 1; }
+    .empty { color: var(--muted); padding: 12px; border: 1px dashed var(--line); }
+    .review-guide { margin-top: 28px; padding: 20px; border: 1px solid var(--line); border-radius: var(--card-radius); background: var(--surface); box-shadow: var(--card-shadow); }
+    .review-guide ol { margin: 8px 0 0; padding-left: 20px; }
+    .limits { margin-top: 12px; color: var(--muted); font-size: 13px; }
+    .footer-note { margin-top: 20px; color: var(--muted); font-size: 13px; }
+    @media (max-width: 640px) {
+      .page { width: min(100% - 24px, 1080px); padding-top: 12px; }
+      .topbar, .preview-heading { display: grid; gap: 10px; }
+      .preview-meta { margin-left: 0; }
+      .company-meta { grid-template-columns: 1fr; }
+      .preview-inner { padding: 16px; }
+      .section { padding: 16px; }
+    }
+    @container (max-width: 560px) { .company-meta { grid-template-columns: 1fr; } }
+    @container (max-width: 560px) { .hypothesis-head { display: grid; gap: 8px; } .hypothesis-head .signal { justify-self: start; } }
+    @container (min-width: 561px) and (max-width: 820px) { .company-meta { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; } }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header class="topbar">
+      <div class="title-block">
+        <div class="brand-line">
+          <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 16.5 10.5 12 14 15.5 18 9"/><path d="M6 7.5h.01M18 16.5h.01"/></svg></span>
+          <p class="eyebrow">미팅 전 브리핑 · MOCK_VIRTUAL</p>
+        </div>
+        <h1>아!거기</h1>
+        <p class="scope-line"><strong>지필로스 · MOCK_VIRTUAL 시안</strong></p>
+      </div>
+      <p class="eyebrow">공개정보 검증 전</p>
+    </header>
+
+    <aside class="notice" aria-label="가상 데이터 안내">
+      <strong>지필로스 · MOCK_VIRTUAL 시안 (공개정보 검증 전)</strong>
+      사용자 제공 정보(www.g-philos.co.kr, 법인 장기렌트카, 경영관리팀, 차량 담당자)는 공개정보 검증 전 사용자 제공 맥락이며, 확인되지 않은 기업 사실·재무 추이·산업 이슈는 가공하지 않고 빈 상태로 표시합니다.
+    </aside>
+
+    <section class="user-context-card" aria-label="사용자 제공 영업 맥락">
+      <div class="user-context-header">
+        <span class="eyebrow" style="color: var(--accent);">사용자 제공 정보 (공개정보 검증 전)</span>
+        <strong>지필로스 · MOCK_VIRTUAL 시안</strong>
+      </div>
+      <dl class="user-context-grid">
+        <div class="user-context-item"><dt>대상 회사</dt><dd>지필로스 (www.g-philos.co.kr)</dd></div>
+        <div class="user-context-item"><dt>제안 상품</dt><dd>법인 장기렌트카</dd></div>
+        <div class="user-context-item"><dt>미팅 부서 / 역할</dt><dd>경영관리팀 · 차량 담당자</dd></div>
+        <div class="user-context-item"><dt>미팅 목적</dt><dd>법인 차량 운영 현황 및 장기렌트 도입 검토</dd></div>
+      </dl>
+    </section>
+
+    <details class="review-tools">
+      <summary>시안 검토 도구</summary>
+      <section class="controls" aria-labelledby="controls-title">
+        <div class="control-group">
+          <h2 id="controls-title">검토할 샘플</h2>
+          <div class="button-row" id="sample-controls" role="group" aria-label="브리핑 샘플 선택">
+            <button class="sample-button" id="sample-gphilos" data-sample-id="gphilos" type="button" aria-pressed="true">지필로스 시안</button>
+            <button class="sample-button" id="sample-success" data-sample-id="success" type="button" aria-pressed="false">정상 · SUCCESS</button>
+            <button class="sample-button" id="sample-insufficient" data-sample-id="insufficient_evidence" type="button" aria-pressed="false">근거 부족</button>
+            <button class="sample-button" id="sample-entity" data-sample-id="entity_ambiguous" type="button" aria-pressed="false">기업 선택 필요</button>
+            <button class="sample-button" id="sample-auth" data-sample-id="provider_auth_error" type="button" aria-pressed="false">인증 오류</button>
+            <button class="sample-button" id="sample-timeout" data-sample-id="provider_timeout" type="button" aria-pressed="false">응답 시간 초과</button>
+            <button class="sample-button" id="sample-citation" data-sample-id="invalid_citation" type="button" aria-pressed="false">인용 오류</button>
+          </div>
+        </div>
+        <div class="control-group">
+          <h2>사용자 보기 폭</h2>
+          <div class="button-row" id="width-controls" role="group" aria-label="화면 폭 비교">
+            <button class="width-button" id="width-phone" data-width="phone" type="button" aria-pressed="false">휴대폰 · 375</button>
+            <button class="width-button" id="width-tablet" data-width="tablet" type="button" aria-pressed="false">태블릿 · 768</button>
+            <button class="width-button" id="width-wide" data-width="wide" type="button" aria-pressed="true">넓게 · 960</button>
+          </div>
+          <p class="width-note">콘텐츠 폭 비교용 컨트롤입니다. 실제 기기 테스트나 실제 반응 속도 측정은 아닙니다.</p>
+        </div>
+      </section>
+    </details>
+
+    <details class="form-section" id="api-form-details" open>
+      <summary>로컬 Mock API 브리핑 분석 요청 (POST /v1/briefings)</summary>
+      <form id="briefing-form">
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="form-company-name">고객사명 (company_name, 필수)</label>
+            <input class="form-input" id="form-company-name" name="company_name" type="text" value="지필로스" required maxlength="100">
+          </div>
+          <div class="form-group">
+            <label for="form-sales-company">영업 담당자 회사 (sales_profile.company, 필수)</label>
+            <input class="form-input" id="form-sales-company" name="sales_profile_company" type="text" value="아!거기" required maxlength="200">
+          </div>
+          <div class="form-group">
+            <label for="form-sales-industry">소속 산업군 (industry, 필수)</label>
+            <input class="form-input" id="form-sales-industry" name="sales_profile_industry" type="text" value="모빌리티·렌터카" required maxlength="200">
+          </div>
+          <div class="form-group">
+            <label for="form-sales-product">취급 상품/서비스 (product_service, 필수)</label>
+            <input class="form-input" id="form-sales-product" name="sales_profile_product" type="text" value="법인 장기렌트카" required maxlength="200">
+          </div>
+          <div class="form-group">
+            <label for="form-sales-target">타깃 고객 (target_customer, 필수)</label>
+            <input class="form-input" id="form-sales-target" name="sales_profile_target" type="text" value="법인 차량 운영 기업" required maxlength="200">
+          </div>
+          <div class="form-group">
+            <label for="form-sales-goal">영업 목표 (sales_goal, 필수)</label>
+            <input class="form-input" id="form-sales-goal" name="sales_profile_goal" type="text" value="법인 장기렌트 도입 상담" required maxlength="200">
+          </div>
+          <div class="form-group">
+            <label for="form-ctx-department">미팅 부서 (department, 선택)</label>
+            <input class="form-input" id="form-ctx-department" name="meeting_context_department" type="text" value="경영관리팀" maxlength="500">
+          </div>
+          <div class="form-group">
+            <label for="form-ctx-role">담당자 직책/역할 (role, 선택)</label>
+            <input class="form-input" id="form-ctx-role" name="meeting_context_role" type="text" value="차량 담당자" maxlength="500">
+          </div>
+          <div class="form-group">
+            <label for="form-ctx-purpose">미팅 목적 (meeting_purpose, 선택)</label>
+            <input class="form-input" id="form-ctx-purpose" name="meeting_context_purpose" type="text" value="법인 차량 운영 현황 및 장기렌트 도입 검토" maxlength="500">
+          </div>
+          <div class="form-group full-width">
+            <label for="form-ctx-notes">과거 메모/내부 맥락 (past_notes, 선택)</label>
+            <textarea class="form-textarea" id="form-ctx-notes" name="meeting_context_notes" maxlength="500"></textarea>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="submit-button" id="submit-briefing-btn" type="submit">분석 준비</button>
+          <span class="api-notice" id="api-status-text" aria-live="polite">동일 출처 FastAPI /ui-review에서 비동기 /v1/briefings 요청 실행</span>
+        </div>
+      </form>
+    </details>
+
+    <section class="preview-area" aria-labelledby="preview-title">
+      <div class="preview-heading">
+        <h2 id="preview-title">고객 브리핑</h2>
+        <p id="current-sample-label">현재 샘플: 지필로스 시안</p>
+      </div>
+      <div class="preview-frame">
+        <div class="preview" id="preview" data-width="wide">
+          <div class="preview-inner" id="preview-content" aria-live="polite"></div>
+        </div>
+      </div>
+    </section>
+
+    <aside class="review-guide" aria-labelledby="review-title">
+      <h2 id="review-title">검토 안내</h2>
+      <ol>
+        <li>정보 순서가 읽기 편한가?</li>
+        <li>사실과 가설이 구분되는가?</li>
+        <li>부족·선택·오류 안내를 이해할 수 있는가?</li>
+      </ol>
+      <p class="limits">실제 품질, 3분 읽기, 지연시간은 이 화면에서 검증하지 않습니다.</p>
+    </aside>
+    <p class="footer-note">검토 범위: 샘플 JSON 화면 표현 및 로컬 Mock 분석/상태 전환. 체크박스, 서버 저장, 실제 공급자 품질, 실측 성능은 포함하지 않습니다.</p>
+  </main>
+
+  <script id="embedded-json" type="application/json">
+  {
+    "samples": {
+      "success": {
+        "status": "SUCCESS",
+        "company": {"name":"가상테스트고객A","resolved_name":"가상테스트고객A 주식회사","entity_confidence":"HIGH","candidate_entities":[],"website":null,"industry":"장기렌탈업","region":"서울"},
+        "company_snapshot": {"summary":"가상테스트고객A은 강남 신사옥 이전을 완료하고 하반기 영업 인력을 채용 중입니다.\n사업장 확장과 인력 증원이 함께 진행되는 시점입니다.\n미팅에서 업무 이동 및 차량 관리 운용 계획을 확인할 수 있습니다.","evidence_ids":["E01","E02"]},
+        "small_talk": [{"topic":"신사옥 이전 축하","talking_point":"최근 강남 신사옥 이전을 축하드립니다.","evidence_ids":["E01"]}],
+        "demand_hypotheses": [{"title":"사옥 이전 및 채용 확대에 따른 업무용 차량 관리 수요","reason":"가상테스트고객A의 강남 신사옥 이전과 영업 인력 채용으로 업무 이동용 차량 관리 솔루션 수요 가능성","reasoning_chain":["E01 FACT: 강남 신사옥 이전 공시","E02 FACT: 영업 인력 채용 보도","인력 이동 및 Fleet 관리 솔루션 수요 도출"],"supporting_evidence":["E01","E02"],"contradicting_evidence":[],"questions":["신규 사옥 이전 후 직원 외근 차량 관리 체계가 수립되었나요?"],"status":"ACTIVE","signal_level":"WEAK"}],
+        "meeting_questions":["신규 사옥 이전 이후 직원분들의 업무용 이동수단 관리는 어떻게 진행하고 계신가요?","하반기 채용 인력 증가에 맞춘 Fleet 확장 계획이 있으신가요?","현재 차량 관리 시 가장 큰 페인포인트는 무엇인가요?"],
+        "sources":[{"evidence_id":"E01","claim":"가상테스트고객A 강남 신사옥 이전 및 사업장 확장 공시. 가상테스트고객A는 사업 확장을 위해 강남 신사옥 이전을 완료했습니다.","publisher":"가상 전자공시시스템","url":"https://dart.example.com/001","published_at":"2026-09-01","source_tier":"C"},{"evidence_id":"E02","claim":"가상테스트고객A 하반기 영업/기획 인력 대규모 채용. 가상테스트고객A는 하반기 영업 및 사업 기획 인력을 대규모 채용 중입니다.","publisher":"가상 경제뉴스","url":"https://news.example.com/002","published_at":"2026-09-10","source_tier":"C"}],
+        "warnings":[],"created_at":"2026-09-26T16:53:39.595301+09:00"
+      },
+      "insufficient_evidence": {
+        "status":"INSUFFICIENT_EVIDENCE",
+        "company":{"name":"가상테스트고객A","resolved_name":"가상테스트고객A 주식회사","entity_confidence":"HIGH","candidate_entities":[],"website":null,"industry":"장기렌탈업","region":"서울"},
+        "company_snapshot":{"summary":"확정된 공개 공시 및 뉴스 근거가 부족합니다.\n현재 수집된 정보만으로는 기업 현황을 판단할 수 없습니다.\n추가 검증된 공시 자료 수집 후 브리핑을 업데이트하세요.","evidence_ids":[]},
+        "small_talk":[],"demand_hypotheses":[],"meeting_questions":["최근 주요 사업 변화가 있었나요?","현재 가장 우선순위가 높은 운영 과제는 무엇인가요?","관련 계획의 일정과 의사결정 기준은 무엇인가요?"],"sources":[],"warnings":["확정된 FACT가 부족하여 수요 가설을 생성하지 않았습니다."],"created_at":"2026-09-26T16:53:39.598305+09:00"
+      },
+      "entity_ambiguous": {
+        "status":"ENTITY_AMBIGUOUS",
+        "company":{"name":"가상테스트고객B","resolved_name":null,"entity_confidence":"LOW","candidate_entities":["가상테스트고객B 알파 주식회사","가상테스트고객B 베타 주식회사"],"website":null,"industry":"제조/유통","region":"부산"},
+        "company_snapshot":{"summary":"입력된 기업명('가상테스트고객B')의 식별 신뢰도가 낮아(LOW) 브리핑 작성을 유보했습니다.\n식별된 법인 후보: 가상테스트고객B 알파 주식회사, 가상테스트고객B 베타 주식회사\n정확한 정식 법인을 선택한 후 생성을 다시 시도하세요.","evidence_ids":[]},
+        "small_talk":[],"demand_hypotheses":[],"meeting_questions":["정확한 정식 법인명과 사업자 등록번호를 선택/확인해 주시겠습니까?","고객사의 주 사업장 소재지 및 대표자명을 확인해 주시겠습니까?","현재 미팅 예정인 부서 또는 사업부 정보를 선택해 주시겠습니까?"],"sources":[],"warnings":["기업 식별 신뢰도가 낮습니다. 후보 법인을 선택한 뒤 다시 시도하세요."],"created_at":"2026-09-26T16:53:39.599311+09:00"
+      },
+      "provider_auth_error": {"error_code":"PROVIDER_AUTH_ERROR","message":"분석 서비스를 일시적으로 이용할 수 없습니다.","detail":{},"timestamp":"2026-09-26T16:53:39.600305+09:00"},
+      "provider_timeout": {"error_code":"PROVIDER_TIMEOUT","message":"분석 서비스 응답 시간이 초과되었습니다.","detail":{},"timestamp":"2026-09-26T16:53:39.602308+09:00"},
+      "invalid_citation": {"error_code":"INVALID_CITATION","message":"P3 draft referenced unconfirmed or invalid evidence_id: ['E99']","detail":{"unconfirmed_citations":["E99"]},"timestamp":"2026-09-26T16:53:39.605709+09:00"}
+    }
+  }
+  </script>
+  <script>
+    (function () {
+      "use strict";
+      const data = JSON.parse(document.getElementById("embedded-json").textContent);
+      const preview = document.getElementById("preview");
+      const content = document.getElementById("preview-content");
+      const sampleLabel = document.getElementById("current-sample-label");
+      const httpStatusByError = { PROVIDER_AUTH_ERROR: 502, PROVIDER_TIMEOUT: 504, INVALID_CITATION: 422 };
+
+      function getHttpStatusLabel(errorCode) {
+        if (httpStatusByError[errorCode] !== undefined) {
+          return String(httpStatusByError[errorCode]);
+        }
+        if (typeof errorCode === "string" && errorCode.startsWith("HTTP_")) {
+          const codeNum = errorCode.slice(5);
+          if (/^\d+$/.test(codeNum)) {
+            return codeNum;
+          }
+        }
+        return "해당 없음";
+      }
+      const sampleNames = {
+        gphilos: "지필로스 시안",
+        success: "정상 · SUCCESS",
+        insufficient_evidence: "근거 부족",
+        entity_ambiguous: "기업 선택 필요",
+        provider_auth_error: "인증 오류",
+        provider_timeout: "응답 시간 초과",
+        invalid_citation: "인용 오류"
+      };
+
+      function isSafeHttpUrl(urlStr) {
+        if (!urlStr || typeof urlStr !== "string") return false;
+        try {
+          const parsed = new URL(urlStr);
+          return parsed.protocol === "http:" || parsed.protocol === "https:";
+        } catch (e) {
+          return false;
+        }
+      }
+
+      function renderSourceUrl(urlStr) {
+        if (!urlStr) return null;
+        if (isSafeHttpUrl(urlStr)) {
+          const link = document.createElement("a");
+          link.className = "source-url";
+          link.href = urlStr;
+          link.target = "_blank";
+          link.rel = "noopener noreferrer";
+          link.textContent = "원문 URL: " + urlStr;
+          return link;
+        }
+        return el("span", "원문 URL(텍스트): " + urlStr, "source-url");
+      }
+
+      function el(tag, text, className) {
+        const node = document.createElement(tag);
+        if (className) node.className = className;
+        if (text !== undefined) node.textContent = text;
+        return node;
+      }
+      function section(title, label) {
+        const node = el("section", undefined, "section");
+        const heading = el("div", undefined, "section-title");
+        heading.append(el("span", label, "label"), el("h3", title));
+        node.append(heading);
+        return node;
+      }
+      function paragraphs(text) {
+        const box = el("div", undefined, "summary");
+        String(text || "").split(/\n+/).filter(Boolean).forEach(function (line) { box.append(el("p", line)); });
+        return box;
+      }
+      function list(items, className) {
+        const box = el("div", undefined, className || "question-list");
+        (items || []).forEach(function (item) { box.append(el("div", item, "question")); });
+        return box;
+      }
+      function renderStatus(status, meta) {
+        const box = el("div", undefined, "preview-status");
+        const statusLabels = { SUCCESS: "브리핑 완료", INSUFFICIENT_EVIDENCE: "근거 부족", ENTITY_AMBIGUOUS: "기업 식별 보류", PROVIDER_AUTH_ERROR: "분석 서비스 오류", PROVIDER_TIMEOUT: "분석 서비스 오류", INVALID_CITATION: "인용 검증 오류" };
+        box.append(el("span", statusLabels[status] || status, "status-tag"));
+        const technical = document.createElement("details"); technical.className = "technical preview-meta"; technical.append(el("summary", "기술 정보"));
+        const details = el("div"); details.append(el("p", "원본 상태: " + status), el("p", "provenance: MOCK_VIRTUAL")); if (meta) details.append(el("p", meta)); technical.append(details); box.append(technical);
+        return box;
+      }
+      function renderCompany(company) {
+        const node = section("회사 개요", "01");
+        const grid = el("dl", undefined, "company-meta");
+        const confidence = { HIGH: "높음", LOW: "낮음", MEDIUM: "중간" };
+        [["회사명", company.name], ["확정 법인", company.resolved_name || "확정 전"], ["식별 신뢰도", confidence[company.entity_confidence] || company.entity_confidence], ["업종", company.industry], ["지역", company.region], ["웹사이트", company.website || "정보 없음"]].forEach(function (pair) {
+          const item = el("div", undefined, "meta-item"); item.append(el("dt", pair[0]), el("dd", pair[1])); grid.append(item);
+        });
+        node.append(grid); return node;
+      }
+      function renderFinancialEmpty() {
+        const node = section("실적/재무 추이", "02");
+        const chartBox = el("div", undefined, "chart-frame");
+        const legends = el("div", undefined, "chart-legends");
+        const l1 = el("span", undefined, "chart-legend-item");
+        l1.append(el("span", undefined, "chart-legend-dot"), document.createTextNode("매출액 (범례 틀)"));
+        const l2 = el("span", undefined, "chart-legend-item");
+        l2.append(el("span", undefined, "chart-legend-dot"), document.createTextNode("영업이익 (범례 틀)"));
+        legends.append(l1, l2);
+        chartBox.append(legends);
+        chartBox.append(el("p", "공개적으로 확인 가능한 재무 추이 자료가 없습니다.", "chart-empty-msg"));
+        node.append(chartBox);
+        return node;
+      }
+      function renderCompanyIssues(sample) {
+        const node = section("최근 회사 이슈", "03");
+        if (sample.company_snapshot && sample.company_snapshot.summary) {
+          node.append(paragraphs(sample.company_snapshot.summary));
+        }
+        const rawSources = sample.sources || [];
+        if (rawSources.length === 0) {
+          const emptyBox = el("div", undefined, "empty-card");
+          emptyBox.append(el("strong", "확인된 최근 회사 이슈가 없습니다."), el("p", "공개 뉴스 및 공시 정보 수집 후 업데이트됩니다."));
+          node.append(emptyBox);
+          return node;
+        }
+        const sources = rawSources.slice().sort(function (a, b) {
+          return (b.published_at || "").localeCompare(a.published_at || "");
+        });
+        const listBox = el("div", undefined, "source-list");
+        sources.forEach(function (source) {
+          const item = el("article", undefined, "source");
+          const head = el("div", undefined, "source-head");
+          const title = source.title || source.publisher || source.evidence_id || "회사 이슈";
+          const publishedAt = source.published_at || "날짜 미상";
+          const excerpt = source.excerpt || source.claim || "";
+          const url = source.url || "";
+          head.append(
+            el("strong", title),
+            el("span", publishedAt, "source-tier"),
+            el("span", "MOCK_VIRTUAL", "virtual-source")
+          );
+          item.append(head);
+          if (excerpt) {
+            item.append(el("p", excerpt));
+          }
+          if (url) {
+            const urlNode = renderSourceUrl(url);
+            if (urlNode) item.append(urlNode);
+          }
+          listBox.append(item);
+        });
+        node.append(listBox);
+        return node;
+      }
+      function renderIndustryIssues() {
+        const node = section("산업/시장 이슈", "04");
+        const emptyBox = el("div", undefined, "empty-card");
+        emptyBox.append(
+          el("strong", "실제 공개정보 조사 후 표시됩니다.")
+        );
+        node.append(emptyBox);
+        return node;
+      }
+      function renderSalesStrategy(sample) {
+        const node = section("영업 전략", "05");
+
+        const hypGroup = el("div", undefined, "strategy-group");
+        hypGroup.append(el("h4", "핵심 신호 · 수요 가설", "strategy-group-title"));
+        const hypotheses = sample.demand_hypotheses || [];
+        if (hypotheses.length > 0) {
+          hypotheses.forEach(function (item) {
+            const card = el("article", undefined, "hypothesis");
+            const head = el("div", undefined, "hypothesis-head");
+            head.append(el("strong", item.title));
+            const signal = el("span", undefined, "signal");
+            signal.append(document.createTextNode("HYPOTHESIS · "), el("em", "미팅에서 확인"));
+            head.append(signal);
+            card.append(head);
+            card.append(el("p", item.reason, "hypothesis-note"), el("p", "HYPOTHESIS · 미팅에서 확인", "hypothesis-note"));
+            const details = el("div", undefined, "hypothesis-details");
+            const d1 = document.createElement("details");
+            d1.append(el("summary", "근거와 추론 자세히 보기"));
+            const chain = el("ul", undefined, "detail-list");
+            (item.reasoning_chain || []).forEach(function (reason) { chain.append(el("li", reason)); });
+            d1.append(chain, el("p", "지지 근거: " + ((item.supporting_evidence || []).join(", ") || "없음")), el("p", "반대 근거: " + ((item.contradicting_evidence && item.contradicting_evidence.length) ? item.contradicting_evidence.join(", ") : "없음")));
+            details.append(d1);
+            const d2 = document.createElement("details");
+            d2.append(el("summary", "가설 문장과 확인 질문"), el("p", "HYPOTHESIS · 미팅에서 확인"), el("p", (item.questions || []).join(" ")));
+            details.append(d2);
+            card.append(details);
+            hypGroup.append(card);
+          });
+        } else {
+          hypGroup.append(el("div", "확정 FACT가 없어 수요 가설을 만들지 않았습니다.", "empty"));
+        }
+        node.append(hypGroup);
+
+        const qGroup = el("div", undefined, "strategy-group");
+        qGroup.append(el("h4", "미팅 질문", "strategy-group-title"));
+        const questions = sample.meeting_questions || [];
+        if (questions.length > 0) {
+          qGroup.append(list(questions));
+        } else {
+          qGroup.append(el("div", "생성된 미팅 질문이 없습니다.", "empty"));
+        }
+        node.append(qGroup);
+
+        const talkGroup = el("div", undefined, "strategy-group");
+        talkGroup.append(el("h4", "대화 시작 (아이스브레이킹)", "strategy-group-title"));
+        const smallTalk = sample.small_talk || [];
+        if (smallTalk.length > 0) {
+          smallTalk.forEach(function (item) {
+            const card = el("div", undefined, "small-talk-item");
+            card.append(el("strong", item.topic), el("p", item.talking_point));
+            if (item.evidence_ids && item.evidence_ids.length > 0) {
+              card.append(el("p", "연결 근거: " + item.evidence_ids.join(", ")));
+            }
+            talkGroup.append(card);
+          });
+        } else {
+          talkGroup.append(el("div", "확정 이슈 확보 후 표시 예정입니다.", "empty"));
+        }
+        node.append(talkGroup);
+
+        return node;
+      }
+      function renderEvidence(sources) {
+        const node = section("출처", "06");
+        const banner = el("div", undefined, "evidence-banner");
+        banner.append(el("strong", "FACT는 이 가상 시나리오에서 확인사실 역할입니다."), el("p", "실제 기업이나 원문을 검증한 사실이 아니며, 아래 자료는 모두 가상 출처(MOCK_VIRTUAL)입니다."));
+        node.append(banner);
+        const sourceList = sources || [];
+        const sourceDetails = document.createElement("details");
+        sourceDetails.append(el("summary", "출처 " + sourceList.length + "개 펼치기"));
+        const listBox = el("div", undefined, "source-list");
+        sourceList.forEach(function (source) {
+          const item = el("article", undefined, "source");
+          const head = el("div", undefined, "source-head");
+          head.append(el("strong", source.evidence_id), el("span", "C등급 · " + (source.published_at || ""), "source-tier"), el("span", "가상 출처", "virtual-source"));
+          item.append(head, el("p", source.claim));
+          if (source.publisher) item.append(el("p", source.publisher));
+          if (source.url) {
+            const urlNode = renderSourceUrl(source.url);
+            if (urlNode) item.append(urlNode);
+          }
+          listBox.append(item);
+        });
+        sourceDetails.append(listBox);
+        node.append(sourceDetails);
+        return node;
+      }
+      function renderSuccess(sample) {
+        const root = el("div", undefined, "briefing");
+        const overviewRow = el("div", undefined, "overview-grid");
+        overviewRow.append(renderCompany(sample.company), renderFinancialEmpty());
+        root.append(overviewRow);
+        root.append(renderCompanyIssues(sample));
+        root.append(renderIndustryIssues());
+        root.append(renderSalesStrategy(sample));
+        root.append(renderEvidence(sample.sources));
+        return root;
+      }
+      function renderInsufficient(sample) {
+        const root = el("div", undefined, "briefing");
+        const overviewRow = el("div", undefined, "overview-grid");
+        overviewRow.append(renderCompany(sample.company), renderFinancialEmpty());
+        root.append(overviewRow);
+        const warning = section("최근 회사 이슈 (근거 부족)", "03");
+        const card = el("div", undefined, "warning");
+        card.append(el("strong", "확정 근거가 부족합니다."), paragraphs(sample.company_snapshot.summary));
+        warning.append(card);
+        root.append(warning);
+        root.append(renderIndustryIssues());
+        root.append(renderSalesStrategy(sample));
+        return root;
+      }
+      function renderEntity(sample) {
+        const root = el("div", undefined, "briefing");
+        root.append(renderCompany(sample.company));
+        const warning = section("기업 식별 보류", "02");
+        const card = el("div", undefined, "warning");
+        card.append(el("strong", "정확한 기업을 확인해야 브리핑을 만들 수 있습니다."), paragraphs(sample.company_snapshot.summary));
+        warning.append(card);
+        root.append(warning);
+        const candidates = section("후보 법인", "03");
+        candidates.append(el("p", "아래는 검토용 목록입니다. 실제 기업 선택 기능은 연결되지 않았습니다.", "technical"));
+        const candidateList = el("div", undefined, "candidate-list");
+        (sample.company.candidate_entities || []).forEach(function (candidate) {
+          const button = el("button", candidate, "candidate");
+          button.disabled = true;
+          button.type = "button";
+          candidateList.append(button);
+        });
+        candidates.append(candidateList);
+        root.append(candidates);
+        const questions = section("확인 질문", "04");
+        questions.append(list(sample.meeting_questions));
+        root.append(questions);
+        return root;
+      }
+      function renderError(sample) {
+        const root = el("div", undefined, "briefing");
+        const node = section("분석 오류 안내", "01"); const box = el("div", undefined, "error-box");
+        const messages = {PROVIDER_AUTH_ERROR: "분석 서비스 인증 설정을 확인해야 합니다.", PROVIDER_TIMEOUT: "분석 서비스 응답이 늦어 분석을 완료하지 못했습니다.", INVALID_CITATION: "분석 결과가 확인되지 않은 근거를 참조해 결과를 표시하지 않았습니다."};
+        box.append(el("strong", messages[sample.error_code] || "분석을 완료하지 못했습니다."));
+        const proposal = el("p", undefined, "error-proposal"); proposal.append(el("strong", "안내문구 초안: "), document.createTextNode(messages[sample.error_code] || "분석을 다시 확인해 주세요.")); box.append(proposal);
+        const technical = document.createElement("details"); technical.className = "technical"; technical.append(el("summary", "기술 상세 보기")); const table = el("div"); table.append(el("p", "HTTP 상태: " + getHttpStatusLabel(sample.error_code)), el("p", "error_code: " + sample.error_code), el("p", "원본 message: "), el("code", sample.message), el("p", "timestamp: " + sample.timestamp)); if (Object.keys(sample.detail || {}).length) table.append(el("p", "detail: " + JSON.stringify(sample.detail))); technical.append(table); box.append(technical); node.append(box); root.append(node); return root;
+      }
+      function renderData(sample, labelText) {
+        content.replaceChildren();
+        const status = sample.status || sample.error_code;
+        const meta = sample.created_at ? "생성 시각: " + sample.created_at : "오류 시각: " + (sample.timestamp || new Date().toISOString());
+        content.append(renderStatus(status, meta));
+        if (sample.status === "SUCCESS") content.append(renderSuccess(sample));
+        else if (sample.status === "INSUFFICIENT_EVIDENCE") content.append(renderInsufficient(sample));
+        else if (sample.status === "ENTITY_AMBIGUOUS") content.append(renderEntity(sample));
+        else content.append(renderError(sample));
+        if (labelText) sampleLabel.textContent = labelText;
+      }
+      function renderGPhilosPreview() {
+        content.replaceChildren();
+        content.append(renderStatus("공개정보 검증 전", "검증 상태: 공개정보 검증 전"));
+        const root = el("div", undefined, "briefing");
+        const overviewRow = el("div", undefined, "overview-grid");
+        const gphilosCompany = {
+          name: "지필로스",
+          resolved_name: "공개정보 검증 전",
+          entity_confidence: "확인 전",
+          industry: "공개정보 검증 전",
+          region: "공개정보 검증 전",
+          website: "www.g-philos.co.kr"
+        };
+        overviewRow.append(renderCompany(gphilosCompany), renderFinancialEmpty());
+        root.append(overviewRow);
+        root.append(renderCompanyIssues({ company_snapshot: null, sources: [] }));
+        root.append(renderIndustryIssues());
+        const gphilosStrategy = {
+          demand_hypotheses: [],
+          meeting_questions: [
+            "현재 법인 차량 운용 방식(장기렌트, 리스, 자산 구매 등)은 어떻게 되시나요?",
+            "기존 차량의 계약 갱신 일정이나 교체 주기는 어떻게 되나요?",
+            "신규 차량 도입 시 주요 의사결정 기준은 무엇인가요?",
+            "현재 차량 운영 및 관리 과정에서 느끼는 불편 사항이 있으신가요?"
+          ],
+          small_talk: []
+        };
+        root.append(renderSalesStrategy(gphilosStrategy));
+        root.append(renderEvidence([]));
+        content.append(root);
+        sampleLabel.textContent = "현재 샘플: 지필로스 시안";
+        document.querySelectorAll("[data-sample-id]").forEach(function (button) {
+          button.setAttribute("aria-pressed", String(button.dataset.sampleId === "gphilos"));
+        });
+      }
+
+      function render(id) {
+        if (id === "gphilos") {
+          renderGPhilosPreview();
+          return;
+        }
+        const sample = data.samples[id];
+        renderData(sample, "현재 샘플: " + sampleNames[id]);
+        document.querySelectorAll("[data-sample-id]").forEach(function (button) { button.setAttribute("aria-pressed", String(button.dataset.sampleId === id)); });
+      }
+
+      let currentAbortController = null;
+      let pollingTimer = null;
+
+      function stopTimer() {
+        if (pollingTimer) {
+          clearInterval(pollingTimer);
+          pollingTimer = null;
+        }
+      }
+
+      function stopPolling() {
+        stopTimer();
+        if (currentAbortController) {
+          currentAbortController.abort();
+          currentAbortController = null;
+        }
+      }
+
+      window.addEventListener("beforeunload", stopPolling);
+
+      const form = document.getElementById("briefing-form");
+      const submitBtn = document.getElementById("submit-briefing-btn");
+      const statusNotice = document.getElementById("api-status-text");
+
+      function setSubmitState(state, message) {
+        if (state === "submitting") {
+          submitBtn.disabled = true;
+          submitBtn.textContent = "분석 중...";
+        } else if (state === "COMPLETED") {
+          submitBtn.disabled = false;
+          submitBtn.textContent = "분석 완료";
+        } else if (state === "FAILED") {
+          submitBtn.disabled = false;
+          submitBtn.textContent = "분석 오류";
+        } else {
+          submitBtn.disabled = false;
+          submitBtn.textContent = "분석 준비";
+        }
+        if (message) {
+          statusNotice.textContent = message;
+        }
+      }
+
+      form.addEventListener("submit", function (evt) {
+        evt.preventDefault();
+        stopPolling();
+
+        if (window.location.protocol === "file:" || (window.location.pathname !== "/ui-review" && !window.location.pathname.endsWith("/ui-review"))) {
+          setSubmitState("idle", "로컬 Mock API 화면(/ui-review)에서 실행해 주세요. (샘플 검토는 계속 가능합니다)");
+          return;
+        }
+
+        const companyName = document.getElementById("form-company-name").value.trim();
+        if (!companyName.startsWith("가상")) {
+          setSubmitState("idle", "Mock 분석은 가상 고객사명만 실행할 수 있습니다. 지필로스 실제 분석은 공개정보 공급자 연결 후 진행합니다.");
+          return;
+        }
+        const salesCompany = document.getElementById("form-sales-company").value.trim();
+        const salesIndustry = document.getElementById("form-sales-industry").value.trim();
+        const salesProduct = document.getElementById("form-sales-product").value.trim();
+        const salesTarget = document.getElementById("form-sales-target").value.trim();
+        const salesGoal = document.getElementById("form-sales-goal").value.trim();
+
+        const dept = document.getElementById("form-ctx-department").value.trim();
+        const role = document.getElementById("form-ctx-role").value.trim();
+        const purpose = document.getElementById("form-ctx-purpose").value.trim();
+        const notes = document.getElementById("form-ctx-notes").value.trim();
+
+        const meetingContext = (dept || role || purpose || notes) ? {
+          department: dept || null,
+          role: role || null,
+          meeting_purpose: purpose || null,
+          past_notes: notes || null
+        } : null;
+
+        const payload = {
+          company_name: companyName,
+          sales_profile: {
+            company: salesCompany,
+            industry: salesIndustry,
+            product_service: salesProduct,
+            target_customer: salesTarget,
+            sales_goal: salesGoal
+          },
+          meeting_context: meetingContext
+        };
+
+        currentAbortController = new AbortController();
+        const signal = currentAbortController.signal;
+
+        setSubmitState("submitting", "POST /v1/briefings 비동기 작업 접수 중...");
+
+        fetch("/v1/briefings", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+          signal: signal
+        })
+        .then(function (res) {
+          if (!res.ok) {
+            return res.json().then(function (errJson) {
+              throw errJson;
+            }).catch(function (e) {
+              if (e && e.error_code) throw e;
+              throw { error_code: "HTTP_" + res.status, message: "요청 실패 (상태 코드: " + res.status + ")", detail: {}, timestamp: new Date().toISOString() };
+            });
+          }
+          return res.json();
+        })
+        .then(function (submitData) {
+          const jobId = submitData.job_id;
+          const statusUrl = submitData.status_url || ("/v1/briefing-jobs/" + jobId);
+          const resultUrl = submitData.result_url || ("/v1/briefings/" + jobId);
+
+          setSubmitState("submitting", "작업 진행 중 (status: PENDING)... job_id: " + jobId);
+
+          let pollCount = 0;
+          const maxPolls = 60;
+
+          pollingTimer = setInterval(function () {
+            pollCount++;
+            if (pollCount > maxPolls) {
+              stopPolling();
+              const timeoutError = {
+                error_code: "POLLING_TIMEOUT",
+                message: "작업 대기 시간이 초과되었습니다.",
+                detail: { poll_count: pollCount },
+                timestamp: new Date().toISOString()
+              };
+              setSubmitState("FAILED", "작업 상태 조회 시간 초과");
+              renderData(timeoutError, "라이브 결과: 오류 (POLLING_TIMEOUT)");
+              return;
+            }
+
+            fetch(statusUrl, { signal: signal })
+              .then(function (r) {
+                if (!r.ok) {
+                  return r.json().then(function (ej) { throw ej; }).catch(function (e) {
+                    if (e && e.error_code) throw e;
+                    throw { error_code: "HTTP_" + r.status, message: "상태 조회 실패 (상태 코드: " + r.status + ")", detail: {}, timestamp: new Date().toISOString() };
+                  });
+                }
+                return r.json();
+              })
+              .then(function (jobStatus) {
+                setSubmitState("submitting", "작업 진행 중 (status: " + jobStatus.status + ")...");
+                if (jobStatus.status === "COMPLETED" || jobStatus.status === "FAILED") {
+                  stopTimer();
+                  const activeController = currentAbortController;
+                  fetch(resultUrl, { signal: signal })
+                    .then(function (rr) {
+                      return rr.json().then(function (resultData) {
+                        return { status_code: rr.status, data: resultData };
+                      });
+                    })
+                    .then(function (resObj) {
+                      if (jobStatus.status === "COMPLETED" && resObj.status_code === 200) {
+                        setSubmitState("COMPLETED", "브리핑 생성 완료!");
+                        renderData(resObj.data, "라이브 결과: " + (resObj.data.company ? resObj.data.company.name : companyName) + " (" + resObj.data.status + ")");
+                      } else {
+                        setSubmitState("FAILED", "브리핑 생성 실패 (" + (resObj.data.error_code || "FAILED") + ")");
+                        renderData(resObj.data, "라이브 결과: 오류 (" + (resObj.data.error_code || "FAILED") + ")");
+                      }
+                    })
+                    .catch(function (err) {
+                      if (err.name === "AbortError") return;
+                      setSubmitState("FAILED", "결과 조회 실패");
+                      const errData = err.error_code ? err : { error_code: "FETCH_ERROR", message: "결과를 불러올 수 없습니다.", detail: {}, timestamp: new Date().toISOString() };
+                      renderData(errData, "라이브 결과: 오류 (" + errData.error_code + ")");
+                    })
+                    .finally(function () {
+                      if (currentAbortController === activeController) {
+                        currentAbortController = null;
+                      }
+                    });
+                }
+              })
+              .catch(function (err) {
+                if (err.name === "AbortError") return;
+                stopPolling();
+                setSubmitState("FAILED", "상태 폴링 오류");
+                const errData = err.error_code ? err : { error_code: "POLLING_ERROR", message: "작업 상태 조회 중 오류가 발생했습니다.", detail: {}, timestamp: new Date().toISOString() };
+                renderData(errData, "라이브 결과: 오류 (" + errData.error_code + ")");
+              });
+          }, 500);
+        })
+        .catch(function (err) {
+          if (err.name === "AbortError") return;
+          stopPolling();
+          setSubmitState("FAILED", "API 요청 실패");
+          const errData = err.error_code ? err : { error_code: "SUBMIT_ERROR", message: "로컬 Mock API 요청을 보낼 수 없습니다. 로컬 Mock API 화면(/ui-review)에서 실행해 주세요.", detail: {}, timestamp: new Date().toISOString() };
+          renderData(errData, "라이브 결과: 오류 (" + errData.error_code + ")");
+        });
+      });
+
+      document.querySelectorAll("[data-sample-id]").forEach(function (button) { button.addEventListener("click", function () { stopPolling(); setSubmitState("idle", "동일 출처 FastAPI /ui-review에서 비동기 /v1/briefings 요청 실행"); render(button.dataset.sampleId); }); });
+      document.querySelectorAll("#width-controls button[data-width]").forEach(function (button) { button.addEventListener("click", function () { preview.dataset.width = button.dataset.width; document.querySelectorAll("#width-controls button[data-width]").forEach(function (item) { item.setAttribute("aria-pressed", String(item === button)); }); }); });
+      render("gphilos");
+    }());
+  </script>
+</body>
+</html>

@@ -1,0 +1,6 @@
+{
+  "error_code": "PROVIDER_AUTH_ERROR",
+  "message": "분석 서비스를 일시적으로 이용할 수 없습니다.",
+  "detail": {},
+  "timestamp": "2026-09-26T07:53:39.600305+00:00"
+}
