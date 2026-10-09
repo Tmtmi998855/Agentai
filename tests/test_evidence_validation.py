@@ -70,6 +70,7 @@ def test_briefing_source_exposes_only_confirmed_customer_fields():
         "url",
         "published_at",
         "source_tier",
+        "scope",
     }
 
 

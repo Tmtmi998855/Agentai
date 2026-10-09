@@ -1,5 +1,25 @@
 # HANDOFF.md — 아!거기 (Ah! There)
 
+## 2026-10-09 업데이트 — v2 하이브리드(메신저 + 웹) 반영
+
+- **기준 문서**: `docs/PRD_v2_hybrid.md` (사용자 v2 초안을 V0 코드와 맞춰 검수·수정한 버전)
+- **추가 구현**:
+  1. 3단계 영업 템플릿(카테고리 → 품목 → 소구점 1~3개)을 JSON 데이터로 정의하고 카탈로그 기준으로 검증. 기존 `SalesProfile`로 자동 변환되어 P1~P4는 변경 없음.
+  2. 듀얼 리서치: 기업 레벨 3개 + 산업 레벨 3개 공개 쿼리, Evidence/BriefingSource에 `scope`(COMPANY/INDUSTRY) 부여.
+  3. P5 전략 질문 3선: Q1 기업 이슈 / Q2 산업 트렌드 / Q3 솔루션 브리지. 범위 외 인용·미확정 근거·미선택 소구점은 `INVALID_CITATION`으로 차단, `grounded`는 서버 계산.
+  4. 텔레그램용 평문 답장 포맷터(4096자 제한, 리포트 링크 보존).
+  5. 리포트 저장소: Memory / Supabase(PostgREST, service_role 서버 전용). 스키마 `db/supabase/migrations/001_init.sql` (RLS 활성화).
+  6. Hermes Agent용 MCP 서버 `app/mcp_server.py` (MCP Python SDK 2.x, stdio).
+  7. `GET /v1/sales-templates` 추가, `POST /v1/briefings`는 선택 필드 `sales_template`, `target_industry` 수용.
+  8. 정리: `BriefingObject`의 중복 선언 필드(`status`, `sources`) 제거.
+- **검증**: `pytest -q -m "not integration"` → 200 passed (기존 175 + 신규 25, `tests/test_hybrid_messenger_flow.py`).
+- **미실행/한계**: 실제 Perplexity·LLM 호출, Hermes 실제 연결, 텔레그램 E2E, Next.js 뷰어, Supabase 실DB 적용은 아직 안 함. 오케스트레이터 기본 공급자는 여전히 Mock.
+- **다음 작업**: ① 오케스트레이터에 실제 Perplexity/LLM 공급자 주입 후 1개 회사 검증 → ② Hermes에 MCP 등록 + 텔레그램 E2E → ③ Next.js `/report/[id]` 뷰어.
+
+---
+
+## 이전 기록 (2026-10-06 기준)
+
 - **현재 목표**: 기존 정적 UI 시안(`docs/ui-review/review.html`)을 로컬 Mock 비동기 브리핑 API(`/ui-review` 경로)에 연결 완료하였으며, 실공급자 1회사 검증 준비를 진행한다.
 - **현재 상태**:
   1. P3 unconfirmed evidence 인용 시 `supporting_evidence` 및 `contradicting_evidence` 양쪽 모두 `CitationIntegrityException(INVALID_CITATION)`으로 fail-closed 차단 및 파라미터화 검증 완료.

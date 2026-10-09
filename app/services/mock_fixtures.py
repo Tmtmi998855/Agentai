@@ -81,6 +81,44 @@ def build_mock_search_items(company_name: str) -> list[RawSearchItem]:
     ]
 
 
+MOCK_INDUSTRY_URL = "https://news.example.com/virtual-industry/101"
+MOCK_INDUSTRY_ITEM_ID = "mock-industry-1"
+
+
+def _mock_industry_title_snippet(industry: str) -> tuple[str, str]:
+    return (
+        f"{industry} 업계 원가 부담 확대",
+        f"{industry} 업계는 원자재 가격과 물류비 상승으로 운영 비용 관리가 공통 과제로 떠올랐습니다.",
+    )
+
+
+def build_mock_industry_search_items(industry: str, industry_query: str) -> list[RawSearchItem]:
+    """듀얼 리서치 산업 레벨 Mock 검색 결과. query는 산업 쿼리 원문과 같아야 scope 태깅이 된다."""
+    title, snippet = _mock_industry_title_snippet(industry)
+    return [
+        RawSearchItem(
+            item_id=MOCK_INDUSTRY_ITEM_ID,
+            query=industry_query,
+            title=title,
+            snippet=snippet,
+            url=MOCK_INDUSTRY_URL,
+            publisher="가상 산업 전문지",
+            published_at="2026-09-05",
+        )
+    ]
+
+
+def build_mock_industry_virtual_html(industry: str, identifier: str) -> tuple[str, str] | None:
+    """산업 Mock 항목에 대한 exact 매칭 가상 원문."""
+    if identifier not in (MOCK_INDUSTRY_URL, MOCK_INDUSTRY_ITEM_ID):
+        return None
+    title, snippet = _mock_industry_title_snippet(industry)
+    claim = EvidenceBuilder._extract_clean_claim(title, snippet)
+    escaped_title, escaped_snippet = _mock_industry_title_snippet(html.escape(industry))
+    escaped_claim = EvidenceBuilder._extract_clean_claim(escaped_title, escaped_snippet)
+    return f"<html><body><h1>산업 동향</h1><p>{escaped_claim}</p></body></html>", claim
+
+
 def build_mock_virtual_html(company_name: str, identifier: str) -> tuple[str, str] | None:
     """URL 또는 item_id의 exact 매칭에 대해서만 (virtual_html_body, target_claim) 튜플을 반환한다.
     

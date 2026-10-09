@@ -3,6 +3,8 @@ from typing import Literal, Any
 import uuid
 from pydantic import BaseModel, Field, ConfigDict, model_validator
 
+from app.domain.strategic_questions import StrategicQuestionSet
+
 
 def current_iso_time() -> str:
     return datetime.now(timezone.utc).isoformat()
@@ -297,6 +299,7 @@ class BriefingSource(StrictBaseModel):
     url: str = Field(..., description="원문 URL")
     published_at: str | None = Field(default=None, description="발행일자 (YYYY-MM-DD)")
     source_tier: Literal["A", "B", "C"] = Field(..., description="출처 신뢰도 등급")
+    scope: Literal["COMPANY", "INDUSTRY"] | None = Field(default=None, description="듀얼 리서치 범위 (기업/산업)")
 
     @classmethod
     def from_evidence(cls, evidence: Evidence) -> "BriefingSource":
@@ -315,6 +318,11 @@ class BriefingSource(StrictBaseModel):
             url=evidence.url,
             published_at=evidence.published_at,
             source_tier=tier,
+            scope=(
+                "INDUSTRY" if "scope:industry" in evidence.relevance_tags
+                else "COMPANY" if "scope:company" in evidence.relevance_tags
+                else None
+            ),
         )
 
 
@@ -329,11 +337,12 @@ class BriefingObject(StrictBaseModel):
     small_talk: list[SmallTalk] = Field(default_factory=list)
     demand_hypotheses: list[ScoredDemandHypothesis] = Field(default_factory=list)
     meeting_questions: list[str] = Field(default_factory=list, description="미팅 확인 질문 3~5개")
+    strategic_questions: StrategicQuestionSet | None = Field(
+        default=None, description="템플릿 프로필 사용 시 생성되는 전략 질문 3선 (Q1 기업/Q2 산업/Q3 솔루션)"
+    )
     sources: list[BriefingSource] = Field(default_factory=list, description="고객용 확정 출처 목록")
     warnings: list[str] = Field(default_factory=list)
-    status: Literal["SUCCESS", "INSUFFICIENT_EVIDENCE", "ENTITY_AMBIGUOUS"] = "SUCCESS"
     created_at: str = Field(default_factory=current_iso_time)
-    sources: list[BriefingSource] = Field(default_factory=list)
 
     def validate_citations(self) -> list[str]:
         valid_ids = {s.evidence_id for s in self.sources}
@@ -355,6 +364,12 @@ class BriefingObject(StrictBaseModel):
             for eid in hyp.contradicting_evidence:
                 if eid not in valid_ids:
                     invalid_references.append(f"hypothesis[{hyp.title}] contradicting_evidence unknown: {eid}")
+
+        if self.strategic_questions:
+            for q in self.strategic_questions.questions:
+                for eid in q.evidence_ids:
+                    if eid not in valid_ids:
+                        invalid_references.append(f"strategic_question[{q.type}] referenced unknown evidence_id: {eid}")
 
         return invalid_references
 

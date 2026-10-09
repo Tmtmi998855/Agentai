@@ -1,0 +1,73 @@
+{
+  "version": "1.0.0",
+  "value_prop_groups": [
+    {"id": "COST", "label": "비용 절감"},
+    {"id": "TAX", "label": "세무/회계 혜택"},
+    {"id": "OPS", "label": "운영 효율성"}
+  ],
+  "categories": [
+    {
+      "id": "mobility",
+      "label": "법인 모빌리티",
+      "products": [
+        {"id": "long_term_rental", "label": "신차 장기렌터카"},
+        {"id": "ev_fleet", "label": "전기차 플릿"},
+        {"id": "fms", "label": "차량운행관리(FMS)"}
+      ],
+      "value_props": [
+        {"id": "mobility_acquisition_tax", "group": "COST", "label": "초기 취득세/등록세 절감"},
+        {"id": "mobility_bundle_maintenance", "group": "COST", "label": "정비·보험 일괄 처리"},
+        {"id": "mobility_expense", "group": "TAX", "label": "손비 처리"},
+        {"id": "mobility_vat_refund", "group": "TAX", "label": "부가세 환급"},
+        {"id": "mobility_off_balance", "group": "TAX", "label": "자산/부채 미계상"},
+        {"id": "mobility_admin_reduction", "group": "OPS", "label": "관리 공수 감소"},
+        {"id": "mobility_regular_check", "group": "OPS", "label": "정기 방문 점검"},
+        {"id": "mobility_replacement_car", "group": "OPS", "label": "사고 대차 지원"}
+      ]
+    },
+    {
+      "id": "it_infra",
+      "label": "IT 인프라/클라우드",
+      "products": [
+        {"id": "public_cloud", "label": "퍼블릭 클라우드 전환"},
+        {"id": "managed_service", "label": "클라우드 운영대행(MSP)"},
+        {"id": "security", "label": "보안 솔루션"}
+      ],
+      "value_props": [
+        {"id": "it_capex_to_opex", "group": "COST", "label": "초기 투자비(CAPEX) 절감"},
+        {"id": "it_usage_billing", "group": "COST", "label": "사용량 기반 과금"},
+        {"id": "it_expense", "group": "TAX", "label": "운영비 손비 처리"},
+        {"id": "it_scalability", "group": "OPS", "label": "증설·축소 탄력성"},
+        {"id": "it_ops_outsourcing", "group": "OPS", "label": "운영 인력 부담 감소"}
+      ]
+    },
+    {
+      "id": "saas",
+      "label": "그룹웨어/SaaS",
+      "products": [
+        {"id": "groupware", "label": "그룹웨어"},
+        {"id": "erp_saas", "label": "클라우드 ERP"},
+        {"id": "hr_saas", "label": "HR/근태 관리"}
+      ],
+      "value_props": [
+        {"id": "saas_license_cost", "group": "COST", "label": "라이선스·유지보수 비용 절감"},
+        {"id": "saas_subscription_expense", "group": "TAX", "label": "구독료 손비 처리"},
+        {"id": "saas_workflow", "group": "OPS", "label": "결재·협업 업무 단축"},
+        {"id": "saas_compliance", "group": "OPS", "label": "법규 대응 자동화"}
+      ]
+    },
+    {
+      "id": "office_equipment",
+      "label": "사무기기",
+      "products": [
+        {"id": "copier_rental", "label": "복합기 렌탈"},
+        {"id": "print_management", "label": "출력 관리 솔루션"}
+      ],
+      "value_props": [
+        {"id": "office_no_upfront", "group": "COST", "label": "초기 구매비 없음"},
+        {"id": "office_rental_expense", "group": "TAX", "label": "렌탈료 손비 처리"},
+        {"id": "office_regular_service", "group": "OPS", "label": "정기 점검·소모품 자동 공급"}
+      ]
+    }
+  ]
+}

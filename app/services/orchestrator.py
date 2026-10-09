@@ -12,6 +12,7 @@ from app.providers.base import ReasoningProvider
 from app.providers.search_base import SearchProvider
 from app.providers.mock_search import MockSearchProvider
 from app.services.briefing_composer import BriefingComposerService
+from app.services.briefing_service import BriefingService
 from app.services.evidence_builder import EvidenceBuilder
 from app.services.web_raw_fetcher import WebRawFetcher
 from app.services.pipeline_services import (
@@ -20,6 +21,11 @@ from app.services.pipeline_services import (
     DemandReasonerService,
 )
 from app.services.rule_engine import HypothesisScorer
+from app.services.dual_research import build_industry_queries, tag_evidence_scopes
+from app.services.strategic_question_composer import (
+    StrategicQuestionComposerService,
+    build_mock_p5_payload,
+)
 from app.services.mock_fixtures import (
     MOCK_VIRTUAL_OFFICIAL_DOMAINS,
     build_mock_company_entity,
@@ -29,6 +35,8 @@ from app.services.mock_fixtures import (
     build_mock_virtual_html,
     build_mock_p3_data,
     build_mock_p4_payload,
+    build_mock_industry_search_items,
+    build_mock_industry_virtual_html,
 )
 
 
@@ -39,6 +47,7 @@ class OrchestratorMockProvider(ReasoningProvider):
         self.request_data = request_data
         self._scored_hypotheses: list[dict[str, Any]] = []
         self._confirmed_evidences: list[Evidence] = []
+        self.target_industry: str | None = None
 
     def set_scored_hypotheses(self, scored_hypotheses: list[dict[str, Any]]) -> None:
         self._scored_hypotheses = scored_hypotheses
@@ -68,6 +77,13 @@ class OrchestratorMockProvider(ReasoningProvider):
             resp_data = build_mock_p4_payload(
                 cp, sp.product_service, self._scored_hypotheses, self._confirmed_evidences
             )
+        elif task == "p5_strategic_questions" and self.request_data.sales_template is not None:
+            resp_data = build_mock_p5_payload(
+                cp,
+                self.target_industry,
+                self.request_data.sales_template.resolve(),
+                self._confirmed_evidences,
+            )
         else:
             resp_data = {}
 
@@ -90,6 +106,7 @@ class BriefingOrchestrator:
         p2_provider: ReasoningProvider | None = None,
         p3_provider: ReasoningProvider | None = None,
         p4_provider: ReasoningProvider | None = None,
+        p5_provider: ReasoningProvider | None = None,
         search_provider: SearchProvider | None = None,
         entity_resolver: Callable[[str, str], CompanyEntity] | None = None,
         search_func: Callable[[str, list[SearchQuery]], list[RawSearchItem]] | None = None,
@@ -100,6 +117,7 @@ class BriefingOrchestrator:
         self.p2_provider = p2_provider
         self.p3_provider = p3_provider
         self.p4_provider = p4_provider
+        self.p5_provider = p5_provider
         self.search_provider = search_provider
         self.entity_resolver = entity_resolver or (
             lambda name, ind: build_mock_company_entity(name, ind)
@@ -118,6 +136,7 @@ class BriefingOrchestrator:
         p2_prov = self.p2_provider or default_provider
         p3_prov = self.p3_provider or default_provider
         p4_prov = self.p4_provider or default_provider
+        p5_prov = self.p5_provider or default_provider
 
         # Step 0: Entity Resolution
         company = self.entity_resolver(cp, sp.industry)
@@ -129,6 +148,14 @@ class BriefingOrchestrator:
             if mock_warning not in briefing.warnings:
                 briefing.warnings.append(mock_warning)
             return briefing
+
+        # 템플릿 프로필이면 듀얼 리서치(산업 레벨)와 P5 질문 3선을 추가로 실행한다.
+        template = request_data.sales_template.resolve() if request_data.sales_template else None
+        target_industry = request_data.target_industry or company.industry
+        default_provider.target_industry = target_industry
+        industry_queries = (
+            build_industry_queries(target_industry) if template is not None and target_industry else []
+        )
 
         # Step 1: P1 Profile Compiler
         p1_service = ProfileCompilerService(p1_prov)
@@ -143,13 +170,15 @@ class BriefingOrchestrator:
         retrieval_plan = await p2_service.plan_retrieval(compiled_profile)
 
         # Step 3: Mock Search using MockSearchProvider (or custom search_func if overridden)
+        all_queries = retrieval_plan.search_queries + industry_queries
         if self.search_func is not None:
-            raw_items = self.search_func(cp, retrieval_plan.search_queries)
+            raw_items = self.search_func(cp, all_queries)
         else:
-            provider = self.search_provider or MockSearchProvider(
-                default_items=build_mock_search_items(cp)
-            )
-            search_req = SearchRequest(company_name=cp, queries=retrieval_plan.search_queries)
+            mock_items = build_mock_search_items(cp)
+            if industry_queries:
+                mock_items += build_mock_industry_search_items(target_industry, industry_queries[0].query)
+            provider = self.search_provider or MockSearchProvider(default_items=mock_items)
+            search_req = SearchRequest(company_name=cp, queries=all_queries)
             search_res = await provider.search(search_req)
             if not search_res.success:
                 raise ProviderException(
@@ -162,12 +191,16 @@ class BriefingOrchestrator:
         evidence_pack = EvidenceBuilder.build_evidences(
             cp, raw_items, confirmed_official_domains=MOCK_VIRTUAL_OFFICIAL_DOMAINS
         )
+        if template is not None:
+            tag_evidence_scopes(evidence_pack, raw_items, industry_queries)
 
         # Step 5: WebRawFetcher & Fact Verification Seam
         web_fetcher = WebRawFetcher(allow_live_fetch=False)
         for evidence in evidence_pack.evidences:
             # Find matching HTML fixture by stable URL identity (or raw_url)
             html_tuple = self.raw_html_func(cp, evidence.url) or self.raw_html_func(cp, evidence.raw_url or "")
+            if html_tuple is None and industry_queries:
+                html_tuple = build_mock_industry_virtual_html(target_industry, evidence.url)
             if html_tuple:
                 html_content, claim_excerpt = html_tuple
                 await web_fetcher.fetch_and_verify_evidence(evidence, custom_raw_html=html_content)
@@ -208,6 +241,17 @@ class BriefingOrchestrator:
             scored_hypotheses=scored_hypotheses,
             compiled_profile=compiled_profile,
         )
+
+        # Step 9: P5 Strategic Question Composer (질문 3선)
+        if template is not None:
+            p5_service = StrategicQuestionComposerService(p5_prov)
+            briefing.strategic_questions = await p5_service.compose_questions(
+                company_name=cp,
+                industry=target_industry,
+                template=template,
+                confirmed_evidences=confirmed_evidences,
+            )
+            BriefingService.validate_briefing_citations(briefing)
 
         # Guarantee Mock disclaimer in warnings
         mock_warning = "MOCK_VIRTUAL: 오프라인 가상 파이프라인에서 생성된 결과입니다."

@@ -35,6 +35,12 @@ class Settings(BaseSettings):
     PERPLEXITY_TIMEOUT_SECONDS: int = Field(default=15, ge=1, le=120, description="Timeout in seconds for search calls")
     PERPLEXITY_MAX_RETRIES: int = Field(default=1, ge=0, le=5, description="Maximum retry count for search calls")
 
+    # Report Store (Supabase) & 웹 리포트 링크
+    REPORT_STORE: Literal["memory", "supabase"] = Field(default="memory", description="리포트 저장소 선택")
+    SUPABASE_URL: str = Field(default="", description="Supabase 프로젝트 URL (https://<ref>.supabase.co)")
+    SUPABASE_SERVICE_ROLE_KEY: SecretStr = Field(default=SecretStr(""), description="서버 전용 service_role 키")
+    REPORT_BASE_URL: str = Field(default="https://ahthere.com/report", description="웹 리포트 뷰어 기본 URL")
+
     def get_public_provider_config(self) -> dict:
         """Returns safe provider config WITHOUT API keys or sensitive secrets."""
         return {
@@ -48,6 +54,7 @@ class Settings(BaseSettings):
             "timeout_seconds": self.TIMEOUT_SECONDS,
             "max_retries": self.MAX_RETRIES,
             "app_env": self.APP_ENV,
+            "report_store": self.REPORT_STORE,
         }
 
 

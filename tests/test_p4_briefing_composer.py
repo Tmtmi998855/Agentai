@@ -104,6 +104,7 @@ async def test_p4_composer_keeps_sources_and_server_signal_unchanged():
         "url",
         "published_at",
         "source_tier",
+        "scope",
     }
     assert briefing.sources[0].claim == evidence.claim
     # BriefingSource does not expose internal audit fields (verified_raw_content, verification_record, etc.)

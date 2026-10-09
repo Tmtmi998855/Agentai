@@ -10,6 +10,7 @@ from app.domain.models import (
     BriefingObject,
     current_iso_time,
 )
+from app.domain.sales_templates import SalesTemplateSelection
 
 JobStatus = Literal["PENDING", "RUNNING", "COMPLETED", "FAILED"]
 JobProvenance = Literal["MOCK_VIRTUAL"]
@@ -55,11 +56,39 @@ class BriefingCreateRequest(StrictBaseModel):
     company_name: str = Field(..., description="대상 기업명 (공백 불가, 1~100자)")
     sales_profile: BoundedSalesProfile = Field(..., description="영업 담당자 프로필")
     meeting_context: BoundedMeetingContext | None = Field(default=None, description="선택적 미팅 맥락")
+    sales_template: SalesTemplateSelection | None = Field(
+        default=None, description="3단계 영업 템플릿 선택값. 지정 시 산업 리서치와 질문 3선(P5)을 추가 실행"
+    )
+    target_industry: str | None = Field(
+        default=None, description="고객사 산업군 힌트 (예: 포장재). 미지정 시 기업 식별 결과의 업종 사용"
+    )
 
     @field_validator("company_name", mode="after")
     @classmethod
     def validate_company_name(cls, v: str) -> str:
         return _validate_bounded_string(v, "company_name", max_len=100)
+
+    @field_validator("target_industry", mode="after")
+    @classmethod
+    def validate_target_industry(cls, v: str | None) -> str | None:
+        return None if v is None else _validate_bounded_string(v, "target_industry", max_len=50)
+
+    @classmethod
+    def from_template(
+        cls,
+        company_name: str,
+        sales_template: SalesTemplateSelection,
+        target_industry: str | None = None,
+        seller_company: str = "미입력",
+    ) -> "BriefingCreateRequest":
+        """메신저/MCP 경로: 기업명 + 저장된 템플릿만으로 요청을 만든다."""
+        profile = sales_template.resolve().to_sales_profile(seller_company)
+        return cls(
+            company_name=company_name,
+            sales_profile=BoundedSalesProfile(**profile.model_dump()),
+            sales_template=sales_template,
+            target_industry=target_industry,
+        )
 
 
 class BriefingJobSubmitResponse(StrictBaseModel):

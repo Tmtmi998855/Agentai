@@ -13,6 +13,21 @@ B2B 영업사원의 영업 맥락과 고객사의 최신 공개정보를 결합�
 - **Source Tier Engine**: 정부/공시 (Tier A), 주요 언론 (Tier B), UGC/블로그 (Tier C) 및 자동 분류기 (`app/domain/source_tier.py`)
 - **Evidence Builder**: 검색 원문(`RawSearchItem`)을 디두프, URL/날짜 검증, 출처 등급화하여 `EvidencePack` 생성
 
+- **v2 하이브리드 확장** (`docs/PRD_v2_hybrid.md`):
+  - 3단계 영업 템플릿: `app/data/sales_templates.json`, `app/domain/sales_templates.py`
+  - 듀얼 리서치(기업+산업): `app/services/dual_research.py`
+  - 전략 질문 3선(P5): `app/services/strategic_question_composer.py`, `app/prompts/p5_strategic_questions.py`
+  - 메신저 답장 포맷: `app/services/messenger_formatter.py`
+  - 리포트 저장소(Memory/Supabase): `app/services/report_store.py`, `db/supabase/migrations/001_init.sql`
+  - Hermes Agent용 MCP 서버: `app/mcp_server.py` (도구: `list_sales_templates`, `save_sales_profile`, `create_meeting_briefing`)
+
+## MCP 서버 실행 (Hermes Agent 연동용)
+
+```bash
+uv pip install -e ".[agent]"
+python -m app.mcp_server   # stdio 전송
+```
+
 ## 테스트 실행
 
 ```bash
@@ -20,6 +35,6 @@ B2B 영업사원의 영업 맥락과 고객사의 최신 공개정보를 결합�
 uv venv
 uv pip install -e ".[dev]"
 
-# 단위 테스트 실행 (단위 테스트 25건 전건 실행)
+# 단위 테스트 실행 (Windows: .venv/Scripts/python.exe, Mac/Linux: .venv/bin/python)
 .venv/Scripts/python.exe -m pytest -q -m "not integration"
 ```
