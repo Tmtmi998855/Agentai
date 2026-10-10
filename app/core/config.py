@@ -15,8 +15,19 @@ class Settings(BaseSettings):
     APP_ENV: Literal["development", "testing", "production"] = "development"
     DEBUG: bool = False
 
-    # Reasoning Provider Choice: mock | openai_compatible
+    # 파이프라인 모드: mock(오프라인 가상 데이터) | live(실제 검색·원문 확인·LLM)
+    PIPELINE_MODE: Literal["mock", "live"] = Field(default="mock", description="브리핑 파이프라인 실행 모드")
+
+    # Reasoning Provider Choice: mock | openai_compatible | codex_cli
     REASONING_PROVIDER: str = Field(default="mock", description="Selected reasoning provider")
+
+    # 원문 페이지 수집 시 추가로 신뢰할 CA 파일 (TLS 중계 프록시 환경 전용, 보통 비워 둠)
+    RAW_FETCH_CA_BUNDLE: str = Field(default="", description="원문 수집용 추가 CA 번들 경로")
+
+    # Codex CLI (로컬 PC에 로그인된 Codex로 GPT-6 Luna 호출)
+    CODEX_COMMAND: str = Field(default="codex", description="Codex CLI 실행 명령")
+    CODEX_MODEL: str = Field(default="gpt-6-luna", description="Codex에 넘길 모델 ID (비우면 Codex 기본 모델)")
+    CODEX_TIMEOUT_SECONDS: int = Field(default=180, ge=10, le=900, description="Codex 1회 호출 제한 시간")
 
     # OpenAI Compatible LLM Gateway Settings
     OPENAI_BASE_URL: str = Field(default="http://localhost:20128/v1", description="Base URL for OpenAI compatible API")
@@ -59,6 +70,7 @@ class Settings(BaseSettings):
             "timeout_seconds": self.TIMEOUT_SECONDS,
             "max_retries": self.MAX_RETRIES,
             "app_env": self.APP_ENV,
+            "pipeline_mode": self.PIPELINE_MODE,
             "report_store": self.REPORT_STORE,
         }
 

@@ -1,3 +1,4 @@
+import ssl
 import asyncio
 import hashlib
 import html
@@ -199,12 +200,14 @@ class WebRawFetcher:
         max_redirects: int = 3,
         http_client: httpx.AsyncClient | None = None,
         allow_live_fetch: bool = False,  # Safety flag: Keep False for offline mock verification
+        ca_bundle: str | None = None,  # 사내/클라우드 프록시처럼 TLS를 중계하는 환경의 추가 CA (검증은 항상 유지)
     ):
         self.max_bytes = max_bytes
         self.timeout_s = timeout_s
         self.max_redirects = max_redirects
         self._http_client = http_client
         self.allow_live_fetch = allow_live_fetch
+        self._verify: ssl.SSLContext | bool = ssl.create_default_context(cafile=ca_bundle) if ca_bundle else True
         if self._http_client is not None:
             self._validate_injected_client(self._http_client)
 
@@ -333,7 +336,7 @@ class WebRawFetcher:
                 if self._http_client is None:
                     base_backend = httpcore.AnyIOBackend()
                     pinned_backend = PinnedNetworkBackend(pinned_ip=last_ip, base_backend=base_backend)
-                    transport = httpx.AsyncHTTPTransport(trust_env=False)
+                    transport = httpx.AsyncHTTPTransport(trust_env=False, verify=self._verify)
                     transport._pool._network_backend = pinned_backend
                     client = httpx.AsyncClient(
                         timeout=httpx.Timeout(self.timeout_s),
@@ -357,7 +360,7 @@ class WebRawFetcher:
                             base_backend = httpcore.AnyIOBackend()
 
                         pinned_backend = PinnedNetworkBackend(pinned_ip=last_ip, base_backend=base_backend)
-                        transport = httpx.AsyncHTTPTransport(trust_env=False)
+                        transport = httpx.AsyncHTTPTransport(trust_env=False, verify=self._verify)
                         transport._pool._network_backend = pinned_backend
                         client = httpx.AsyncClient(
                             timeout=self._http_client.timeout,

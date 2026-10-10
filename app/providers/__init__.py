@@ -2,6 +2,7 @@ from app.core.config import settings
 from app.providers.base import ReasoningProvider
 from app.providers.mock import MockReasoningProvider
 from app.providers.openai_compatible import OpenAICompatibleReasoningProvider
+from app.providers.codex_cli import CodexCliReasoningProvider
 
 from app.providers.search_base import SearchProvider
 from app.providers.mock_search import MockSearchProvider
@@ -21,6 +22,12 @@ def get_reasoning_provider(provider_type: str | None = None) -> ReasoningProvide
             default_model=settings.REASONING_MODEL,
             default_timeout_s=settings.TIMEOUT_SECONDS,
             max_retries=settings.MAX_RETRIES,
+        )
+    elif target_provider == "codex_cli":
+        return CodexCliReasoningProvider(
+            command=settings.CODEX_COMMAND,
+            default_model=settings.CODEX_MODEL,
+            timeout_s=settings.CODEX_TIMEOUT_SECONDS,
         )
     else:
         raise ValueError(f"Unsupported REASONING_PROVIDER: {target_provider}")

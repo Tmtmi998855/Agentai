@@ -12,7 +12,7 @@ from app.core.exceptions import AhThereException
 from app.domain.job_models import BriefingCreateRequest
 from app.domain.sales_templates import SalesTemplateSelection, load_sales_template_catalog
 from app.services.messenger_formatter import format_messenger_briefing
-from app.services.orchestrator import BriefingOrchestrator
+from app.services.orchestrator import BriefingOrchestrator, create_orchestrator
 from app.services.report_store import MessengerType, ReportStore, build_report_row
 
 
@@ -62,6 +62,7 @@ async def create_meeting_briefing(
     target_industry: str | None = None,
     orchestrator: BriefingOrchestrator | None = None,
     report_base_url: str | None = None,
+    company_website: str | None = None,
 ) -> dict[str, Any]:
     """기업명 하나로 듀얼 리서치 → 질문 3선 → 리포트 저장 → 메신저 답장 텍스트까지 만든다."""
     user = await store.get_user_profile(messenger_type, messenger_user_id)
@@ -69,11 +70,13 @@ async def create_meeting_briefing(
         raise AgentToolError("영업 프로필이 없습니다. 먼저 온보딩(save_sales_profile)을 진행하세요.",
                              "PROFILE_NOT_FOUND")
     try:
-        request = BriefingCreateRequest.from_template(company_name, user.template, target_industry)
+        request = BriefingCreateRequest.from_template(
+            company_name, user.template, target_industry, company_website=company_website
+        )
     except ValidationError as exc:
-        raise AgentToolError("기업명 또는 산업명이 비어 있거나 너무 깁니다.", "VALIDATION_ERROR") from exc
+        raise AgentToolError("기업명·산업명·홈페이지 입력값을 확인하세요.", "VALIDATION_ERROR") from exc
 
-    briefing = await (orchestrator or BriefingOrchestrator()).execute_pipeline(request)
+    briefing = await (orchestrator or create_orchestrator()).execute_pipeline(request)
 
     report_url = None
     report_id = None

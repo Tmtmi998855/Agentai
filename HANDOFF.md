@@ -1,5 +1,16 @@
 # HANDOFF.md — 아데어 (Ah! There)
 
+## 2026-10-10 실제(live) 모드 연결
+
+- **GPT-6 Luna = Codex CLI**: `app/providers/codex_cli.py` (`REASONING_PROVIDER=codex_cli`). PC에 로그인된 Codex를 `codex exec`로 호출한다. 빈 임시 폴더, `--sandbox read-only`, `--ephemeral`, 프롬프트는 stdin으로 전달. JSON 추출 후 서버가 Pydantic으로 재검증.
+- **live 오케스트레이터**: `PIPELINE_MODE=live` → `create_orchestrator()`가 실제 Perplexity 검색과 Codex 추론을 주입한다. 원문 페이지를 직접 가져와 검색 스니펫 문장 중 원문에 글자 그대로 있는 문장만 FACT_CONFIRMED로 확정한다(`app/services/live_verification.py`, 게시판 상투문구 필터 포함).
+- **기업 식별**: 요청의 `company_website`(새 필드)가 있으면 해당 도메인을 공식 출처(Tier A)로 쓴다. 없으면 동명 기업 경고를 붙인다.
+- **실행 스크립트**: `scripts/run_live_briefing.py` (사전 점검: Perplexity 키, codex 설치·로그인). PC 실행 안내는 `docs/LOCAL_RUN_GUIDE.md`.
+- **클라우드 검증(써니웨이브텍)**: Perplexity 검색 30건 → 원문 대조 확정 5건(ZDNet SMM 2026 업무협약 등). GPT 단계는 이 환경에 Codex가 없어 미실행.
+- `RAW_FETCH_CA_BUNDLE`: HTTPS를 중계하는 환경(클라우드 프록시, 회사망)용 추가 CA. 검증을 끄지 않는다.
+- 테스트: 214 passed (`tests/test_live_mode.py` 11건 추가).
+- 남은 위험: P4는 서버가 채점한 가설을 LLM이 그대로 옮겨 적어야 통과한다(fail-closed). 실제 GPT 실행에서 `INVALID_CITATION`이 반복되면 가설을 서버가 직접 채우는 구조로 바꿔야 한다. 산업 검색어의 기간 제한(6m)이 Perplexity 요청에 전달되지 않아 오래된 기사가 섞일 수 있다.
+
 ## 2026-10-09 추가 결정 반영
 
 - 서비스 한글명 **아데어** 확정 → 코드·문서·UI 시안 표기 변경.

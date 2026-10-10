@@ -61,12 +61,15 @@ async def save_sales_profile(category_id: str, product_id: str, value_prop_ids: 
 
 
 @server.tool()
-async def create_meeting_briefing(company_name: str, target_industry: str | None = None) -> dict[str, Any]:
-    """기업명으로 현장 브리핑과 미팅 질문 3선을 만들고 웹 리포트 링크를 반환한다."""
+async def create_meeting_briefing(
+    company_name: str, target_industry: str | None = None, company_website: str | None = None
+) -> dict[str, Any]:
+    """기업명으로 현장 브리핑과 미팅 질문 3선을 만들고 웹 리포트 링크를 반환한다.
+    사용자가 홈페이지 주소를 함께 보내면 company_website에 넣는다(동명 기업 구분)."""
     try:
         messenger_type, user_id = owner_identity()
         return await agent_tools.create_meeting_briefing(
-            _store, messenger_type, user_id, company_name, target_industry
+            _store, messenger_type, user_id, company_name, target_industry, company_website=company_website
         )
     except AhThereException as exc:
         return _error(exc)

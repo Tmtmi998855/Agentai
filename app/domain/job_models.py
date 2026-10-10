@@ -1,3 +1,4 @@
+import re
 from datetime import datetime, timezone
 from typing import Literal, Any
 import uuid
@@ -62,6 +63,9 @@ class BriefingCreateRequest(StrictBaseModel):
     target_industry: str | None = Field(
         default=None, description="고객사 산업군 힌트 (예: 포장재). 미지정 시 기업 식별 결과의 업종 사용"
     )
+    company_website: str | None = Field(
+        default=None, description="고객사 공식 홈페이지 (live 모드에서 동명 기업 구분 및 공식 출처 등급에 사용)"
+    )
 
     @field_validator("company_name", mode="after")
     @classmethod
@@ -73,6 +77,16 @@ class BriefingCreateRequest(StrictBaseModel):
     def validate_target_industry(cls, v: str | None) -> str | None:
         return None if v is None else _validate_bounded_string(v, "target_industry", max_len=50)
 
+    @field_validator("company_website", mode="after")
+    @classmethod
+    def validate_company_website(cls, v: str | None) -> str | None:
+        if v is None:
+            return None
+        s = _validate_bounded_string(v, "company_website", max_len=200)
+        if not re.match(r"^https?://[^\s/]+\.[^\s]+$", s):
+            raise ValueError("company_website must be an http(s) URL")
+        return s
+
     @classmethod
     def from_template(
         cls,
@@ -80,6 +94,7 @@ class BriefingCreateRequest(StrictBaseModel):
         sales_template: SalesTemplateSelection,
         target_industry: str | None = None,
         seller_company: str = "미입력",
+        company_website: str | None = None,
     ) -> "BriefingCreateRequest":
         """메신저/MCP 경로: 기업명 + 저장된 템플릿만으로 요청을 만든다."""
         profile = sales_template.resolve().to_sales_profile(seller_company)
@@ -88,6 +103,7 @@ class BriefingCreateRequest(StrictBaseModel):
             sales_profile=BoundedSalesProfile(**profile.model_dump()),
             sales_template=sales_template,
             target_industry=target_industry,
+            company_website=company_website,
         )
 
 

@@ -21,6 +21,11 @@ from app.services.pipeline_services import (
     DemandReasonerService,
 )
 from app.services.rule_engine import HypothesisScorer
+from app.services.live_verification import (
+    build_live_company_entity,
+    confirm_from_raw_excerpt,
+    website_domain,
+)
 from app.services.dual_research import build_industry_queries, tag_evidence_scopes
 from app.services.strategic_question_composer import (
     StrategicQuestionComposerService,
@@ -97,6 +102,9 @@ class OrchestratorMockProvider(ReasoningProvider):
         )
 
 
+MOCK_WARNING = "MOCK_VIRTUAL: 오프라인 가상 파이프라인에서 생성된 결과입니다."
+
+
 class BriefingOrchestrator:
     """Orchestrates the multi-stage briefing pipeline."""
 
@@ -112,6 +120,8 @@ class BriefingOrchestrator:
         search_func: Callable[[str, list[SearchQuery]], list[RawSearchItem]] | None = None,
         raw_html_func: Callable[[str, str], tuple[str, str] | None] | None = None,
         step_gate_event: anyio.Event | None = None,
+        live: bool = False,
+        live_fetcher: WebRawFetcher | None = None,
     ):
         self.p1_provider = p1_provider
         self.p2_provider = p2_provider
@@ -125,6 +135,9 @@ class BriefingOrchestrator:
         self.search_func = search_func
         self.raw_html_func = raw_html_func or (lambda name, identifier: build_mock_virtual_html(name, identifier))
         self.step_gate_event = step_gate_event
+        # live: 실제 검색 결과 URL을 직접 가져와 원문 대조로 사실 확인 (Mock 픽스처 미사용)
+        self.live = live
+        self.live_fetcher = live_fetcher
 
     async def execute_pipeline(self, request_data: BriefingCreateRequest) -> BriefingObject:
         cp = request_data.company_name
@@ -139,14 +152,16 @@ class BriefingOrchestrator:
         p5_prov = self.p5_provider or default_provider
 
         # Step 0: Entity Resolution
-        company = self.entity_resolver(cp, sp.industry)
+        if self.live:
+            company = build_live_company_entity(cp, request_data.company_website, request_data.target_industry)
+        else:
+            company = self.entity_resolver(cp, sp.industry)
         if company.entity_confidence in ("LOW", "MEDIUM"):
             # Halt early without calling P1, Search, P3, or P4
             composer = BriefingComposerService(p4_prov)
             briefing = composer._entity_ambiguous_briefing(company)
-            mock_warning = "MOCK_VIRTUAL: 오프라인 가상 파이프라인에서 생성된 결과입니다."
-            if mock_warning not in briefing.warnings:
-                briefing.warnings.append(mock_warning)
+            if not self.live and MOCK_WARNING not in briefing.warnings:
+                briefing.warnings.append(MOCK_WARNING)
             return briefing
 
         # 템플릿 프로필이면 듀얼 리서치(산업 레벨)와 P5 질문 3선을 추가로 실행한다.
@@ -173,6 +188,13 @@ class BriefingOrchestrator:
         all_queries = retrieval_plan.search_queries + industry_queries
         if self.search_func is not None:
             raw_items = self.search_func(cp, all_queries)
+        elif self.live:
+            if self.search_provider is None:
+                raise ProviderException("Live pipeline requires a search provider", error_code="PROVIDER_SEARCH_ERROR")
+            search_res = await self.search_provider.search(SearchRequest(company_name=cp, queries=all_queries))
+            if not search_res.success:
+                raise ProviderException("Search provider execution failed", error_code="PROVIDER_SEARCH_ERROR")
+            raw_items = search_res.items
         else:
             mock_items = build_mock_search_items(cp)
             if industry_queries:
@@ -188,15 +210,20 @@ class BriefingOrchestrator:
             raw_items = search_res.items
 
         # Step 4: EvidenceBuilder
-        evidence_pack = EvidenceBuilder.build_evidences(
-            cp, raw_items, confirmed_official_domains=MOCK_VIRTUAL_OFFICIAL_DOMAINS
+        official_domains = (
+            {d for d in [website_domain(request_data.company_website)] if d}
+            if self.live
+            else MOCK_VIRTUAL_OFFICIAL_DOMAINS
         )
+        evidence_pack = EvidenceBuilder.build_evidences(cp, raw_items, confirmed_official_domains=official_domains)
         if template is not None:
             tag_evidence_scopes(evidence_pack, raw_items, industry_queries)
 
         # Step 5: WebRawFetcher & Fact Verification Seam
+        if self.live:
+            await self._verify_live(evidence_pack.evidences, raw_items)
         web_fetcher = WebRawFetcher(allow_live_fetch=False)
-        for evidence in evidence_pack.evidences:
+        for evidence in ([] if self.live else evidence_pack.evidences):
             # Find matching HTML fixture by stable URL identity (or raw_url)
             html_tuple = self.raw_html_func(cp, evidence.url) or self.raw_html_func(cp, evidence.raw_url or "")
             if html_tuple is None and industry_queries:
@@ -253,9 +280,52 @@ class BriefingOrchestrator:
             )
             BriefingService.validate_briefing_citations(briefing)
 
-        # Guarantee Mock disclaimer in warnings
-        mock_warning = "MOCK_VIRTUAL: 오프라인 가상 파이프라인에서 생성된 결과입니다."
-        if mock_warning not in briefing.warnings:
-            briefing.warnings.append(mock_warning)
+        if self.live:
+            if not request_data.company_website:
+                briefing.warnings.append("홈페이지 미입력: 이름이 같은 다른 회사 자료가 섞였을 수 있습니다.")
+        elif MOCK_WARNING not in briefing.warnings:
+            # Guarantee Mock disclaimer in warnings
+            briefing.warnings.append(MOCK_WARNING)
 
         return briefing
+
+    async def _verify_live(self, evidences: list[Evidence], raw_items: list[RawSearchItem]) -> None:
+        """근거 URL을 동시에(최대 5개) 가져와 원문에 그대로 있는 문장만 사실로 확정한다."""
+        from app.core.config import settings
+
+        fetcher = self.live_fetcher or WebRawFetcher(
+            allow_live_fetch=True, ca_bundle=settings.RAW_FETCH_CA_BUNDLE or None
+        )
+        title_by_url = {item.url: item.title for item in raw_items if item.url}
+        limiter = anyio.CapacityLimiter(5)
+
+        async def verify(evidence: Evidence) -> None:
+            if evidence.status == "REVIEW_REQUIRED":
+                return
+            async with limiter:
+                result = await fetcher.fetch_and_verify_evidence(evidence)
+            if result.success:
+                confirm_from_raw_excerpt(evidence, title_by_url.get(evidence.raw_url or evidence.url))
+
+        async with anyio.create_task_group() as tg:
+            for evidence in evidences:
+                tg.start_soon(verify, evidence)
+
+
+def create_orchestrator() -> BriefingOrchestrator:
+    """설정(PIPELINE_MODE)에 맞는 오케스트레이터. live면 실제 검색·LLM 공급자를 주입한다."""
+    from app.core.config import settings
+    from app.providers import get_reasoning_provider, get_search_provider
+
+    if settings.PIPELINE_MODE != "live":
+        return BriefingOrchestrator()
+    reasoning = get_reasoning_provider()
+    return BriefingOrchestrator(
+        p1_provider=reasoning,
+        p2_provider=reasoning,
+        p3_provider=reasoning,
+        p4_provider=reasoning,
+        p5_provider=reasoning,
+        search_provider=get_search_provider(),
+        live=True,
+    )
