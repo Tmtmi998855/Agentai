@@ -22,8 +22,14 @@ _BOILERPLATE = re.compile(
 BOILERPLATE_MAX_CHARS = 60
 
 
+_QUOTE_PAIRS = (("‘", "’"), ("“", "”"), ("(", ")"), ("[", "]"), ("「", "」"))
+
+
 def is_meaningful(sentence: str) -> bool:
     if len(sentence) < BOILERPLATE_MAX_CHARS and _BOILERPLATE.search(sentence):
+        return False
+    # 따옴표·괄호가 열린 채 끝난 조각은 잘린 문장이라 사실로 쓰지 않는다 (예: "…박람회 ‘")
+    if any(sentence.count(o) != sentence.count(c) for o, c in _QUOTE_PAIRS):
         return False
     letters = sum(ch.isalpha() for ch in sentence)
     return letters >= len(sentence) * 0.5

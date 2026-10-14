@@ -175,3 +175,9 @@ async def test_live_orchestrator_warns_without_website():
         search_provider=FakeSearch([]), live=True, live_fetcher=FakeFetcher({})
     ).execute_pipeline(request)
     assert any("홈페이지 미입력" in w for w in briefing.warnings)
+
+
+def test_truncated_quote_fragment_is_rejected():
+    ev = _raw_verified("x", "y")
+    ev.claim = "써니웨이브텍은 지난 1일부터 나흘간 독일 함부르크에서 열린 조선·해양 박람회 ‘... SMM 2026’에서 협약을 체결"
+    assert not any(c.endswith("‘") for c in candidate_sentences(ev))
