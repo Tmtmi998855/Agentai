@@ -160,3 +160,13 @@ TELEGRAM_ALLOWED_USERS=123456789
 - Step 3 텔레그램 봇 개방: 미착수. Hermes 게이트웨이로 텔레그램 연결 후 E2E 확인.
 - Step 4 Next.js 웹 뷰어: 미착수. `reports` 행(`briefing` JSON)을 렌더링하는 `/report/[id]` 페이지.
 - 선행 과제: 오케스트레이터에 실제 Perplexity/LLM 공급자 주입 (현재 기본값은 Mock). `HANDOFF.md`의 "실공급자 1개 회사 검증"과 같은 작업이다.
+
+## 8. 운영 단계 결정 (2026-10-16)
+
+- **MVP (방법 A)**: 내 PC에서 Hermes 게이트웨이 + ah-there MCP 서버 + Codex CLI(GPT-6 Luna)를 실행한다. 사용자는 본인 1명. 폰 텔레그램으로 기업명을 보내 사용한다.
+  - 설정: `PIPELINE_MODE=live`, `REASONING_PROVIDER=codex_cli`, `SEARCH_PROVIDER=perplexity`
+  - 한계: PC가 켜져 있어야 응답한다. 개인 ChatGPT 구독의 사용량 한도를 따른다. 개인 구독으로 다른 사람에게 서비스하지 않는다.
+- **실서비스 (방법 B)**: 클라우드 서버 + OpenAI API 키(또는 OpenRouter)로 전환한다.
+  - 코드 변경 없이 설정만 바꾼다: `REASONING_PROVIDER=openai_compatible`, `OPENAI_BASE_URL`, `OPENAI_API_KEY`, `REASONING_MODEL`
+  - 전환 시점: ① 두 번째 사용자가 생길 때 ② PC가 꺼져 있어도 응답이 필요할 때 ③ Codex 사용량 한도에 걸릴 때 — 셋 중 하나라도 해당하면 전환한다.
+  - 전환 시 함께 할 일: 다중 사용자 식별(4.2), 리포트 링크 만료/로그인, Supabase 실DB, Next.js 뷰어 배포.

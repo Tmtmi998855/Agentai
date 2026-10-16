@@ -1,5 +1,10 @@
 # HANDOFF.md — 아데어 (Ah! There)
 
+## 2026-10-16 운영 단계 결정
+
+- MVP는 방법 A(내 PC + Hermes + Codex CLI), 실서비스는 방법 B(클라우드 + API 키)로 간다. 상세는 `docs/PRD_v2_hybrid.md` 8장.
+- 모바일 리포트 시제품(`scripts/render_report_html.py`) 사용자 평가: 화면 자연스러움 OK, Q3(솔루션 브리지) 5점 중 3점.
+
 ## 2026-10-10 실제(live) 모드 연결
 
 - **GPT-6 Luna = Codex CLI**: `app/providers/codex_cli.py` (`REASONING_PROVIDER=codex_cli`). PC에 로그인된 Codex를 `codex exec`로 호출한다. 빈 임시 폴더, `--sandbox read-only`, `--ephemeral`, 프롬프트는 stdin으로 전달. JSON 추출 후 서버가 Pydantic으로 재검증.
